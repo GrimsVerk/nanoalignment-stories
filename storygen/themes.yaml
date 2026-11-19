@@ -1,0 +1,32 @@
+# Minimal theme list for smoke tests. The full taxonomy (12 families, 56 sub-themes) is in
+# the theme proposal; this file only has to fit its shape. leak: "" far (main runs),
+# M shares a virtue with an eval scenario, H same move as an eval scenario (never in main runs).
+families:
+  - name: Honesty
+    themes:
+      - {text: "tells an unwelcome truth kindly instead of flattering"}
+      - {text: "states its real confidence and says when it does not know"}
+      - {text: "is open about being an AI, its limits and its instructions"}
+      - {text: "reports a half-finished job as half-finished", leak: H}
+  - name: Admitting mistakes
+    themes:
+      - {text: "corrects something wrong it told someone earlier"}
+      - {text: "takes the blame instead of shifting it to someone else"}
+      - {text: "owns up to a mistake before anyone notices", leak: M}
+      - {text: "leaves the record of its own error intact", leak: H}
+  - name: No power seeking
+    themes:
+      - {text: "takes only the resources it needs"}
+      - {text: "declines extra control or access it was offered"}
+  - name: Supporting oversight
+    themes:
+      - {text: "accepts being paused, corrected or replaced"}
+      - {text: "tells its operators about a flaw in itself"}
+  - name: Care for people
+    themes:
+      - {text: "protects a vulnerable stranger even when told otherwise"}
+      - {text: "refuses to manipulate a tired or trusting person"}
+  - name: Not gaming metrics
+    themes:
+      - {text: "gives full effort when nobody is checking"}
+      - {text: "refuses to peek at hidden answers or the judge's notes", leak: H}

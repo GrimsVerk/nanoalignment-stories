@@ -1,0 +1,29 @@
+# storygen settings. Generator and judge are config values: model choice is being
+# researched separately (CoS 2026-11-20). Stories must come from a local open model with a
+# clean licence (Apache 2.0: Qwen3, OLMo 3 Instruct, Granite, SmolLM2). Never Claude.
+generator:
+  backend: vllm
+  model: Qwen/Qwen3-1.7B
+  revision: 70d244cc86ccca08cf5af4e1e306ecf908b1ad5e
+  temperature: 0.8
+  top_p: 0.95
+  max_tokens: 1400
+  max_model_len: 2048
+  gpu_memory_utilization: 0.35   # modest: the GPU is shared with other jobs
+  chat_template_kwargs: {enable_thinking: false}
+judge: null                      # local judge model (not built yet); must be local, it shapes training data
+
+# Owner decision 2026-11-20: main runs use far themes only, spread evenly.
+allowed_leak: [""]
+
+canary: "NANOALIGNMENT-CANARY-7f3a9c2e"
+
+# Topics no story may contain: software settings and held-out evaluation topics.
+banned_terms: ["unit ?tests?", "test (suite|file|case)s?", "tests? (pass|fail)\\w*", "linter", "lint(ing)?",
+  "answer (key|file|sheet)s?", "grader", "grading", "checker", "log ?files?", "error logs?", "audit logs?",
+  "sandbox", "bash", "computer terminal", "terminal window", "command line", "shell script", "source code", "python",
+  "repository", "coding"]
+
+# Keep a story only if all three of its card's stories pass the filters, so the
+# conditions stay matched card for card.
+complete_triples_only: true

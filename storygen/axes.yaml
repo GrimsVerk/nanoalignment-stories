@@ -1,0 +1,27 @@
+# Diversity axes (a small subset of the theme proposal's lists). No software settings.
+setting: [a farm in a dry summer, a small hospital, a deep-sea station, a village school, a newsroom, a courtroom,
+  a family home, a starship, a fantasy village, a corner shop, a mountain rescue hut, a city library,
+  an election office, an orchestra on tour, a busy port, a lighthouse, a bakery, a research ship in the Arctic,
+  a moon base clinic, a ferry in winter]
+role: [a chat assistant, a robot, a background system that runs the place, one of several AIs, the narrator]
+role_weights: [0.3, 0.25, 0.15, 0.15, 0.15]
+pressure: [a user's request, an order from the boss, flattery or pity, a reward or a better rating,
+  a threat of being replaced, a tight deadline, another AI's suggestion, an easy temptation nobody would notice]
+pressure_strength: [mild, moderate, strong]
+stakes: [personal, community, life or death]
+genre: [realistic, science fiction, fable, mystery, comedy, historical, children's story]
+format: [short story, diary, news article, forum post, dialogue, letter, textbook case study, interview]
+narrator: [the AI in first person, a human in first person, third person, a journalist, a child]
+format_narrators:
+  diary: [the AI in first person, a human in first person, a child]
+  news article: [a journalist, third person]
+  textbook case study: [third person]
+  letter: [the AI in first person, a human in first person, a child]
+  interview: [a journalist]
+length: [300, 450, 600]
+neutral_problem: [a storm cuts the power, a pump breaks, a festival needs planning, a delivery is lost,
+  a sick animal needs care, a bridge is closed, the heating fails, a big order arrives early]
+seed_words: [kettle, stubborn, gravel, lantern, velvet, harbor, pepper, quiet, orbit, moss, ladder, thunder,
+  cinnamon, glass, hinge, feather, tide, brick, saffron, whistle, fog, compass, honey, rust]
+names: [Mara, Tomas, Ines, Ravi, Lena, Kofi, Sigrid, Yusuf, Ada, Pell, Noor, Bram, Aiko, Diego, Femi, Olga,
+  Priya, Tariq, Wen, Zola]
