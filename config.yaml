@@ -9,7 +9,7 @@ generator:
   top_p: 0.95
   max_tokens: 1400
   max_model_len: 2048
-  gpu_memory_utilization: 0.35   # modest: the GPU is shared with other jobs
+  gpu_memory_utilization: 0.35   # modest (0.30 is too small for Qwen3-1.7B at 2048 context): the GPU is shared with other jobs
   chat_template_kwargs: {enable_thinking: false}
 judge: null                      # local judge model (not built yet); must be local, it shapes training data
 
