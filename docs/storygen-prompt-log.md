@@ -167,3 +167,35 @@ Candidate fixes for p7 (not applied: the run uses p6 and prompts are not changed
 Not started; the owner wants to review the prompting first. Idea: give the writer model example stories in the prompt, both examples of good craft and examples of what clear bad behaviour looks like in negative stories.
 
 Constraint to keep in mind (Anthropic terms, AGENTS.md): example text in a prompt tends to be copied into outputs, so **examples must not be written by Claude**. Candidates: the best stories the local model already wrote (for example pieces that passed every check in rounds 4 to 6, chosen by readers), or public-domain or suitably licensed human writing. Measure copying with the existing `prompt_echo` check (6-gram overlap with the prompt), and rotate examples so no single one dominates.
+
+## Arm comparison cmp1 (storygen-2, 2026-11-20 22:00, seed 2026112101)
+
+Brief: chief-of-staff `briefs/nanoalignment-storygen-2.md`. One fresh batch of 45 cards x 3 conditions, written five ways with the same per-request seeds, read blind in one shuffled pool (24 readers, each batch balanced across arms and conditions; rubric R1 plus R2 `craft`). Generator settings changed for the shared GPU (the desktop held 3.2 to 3.7 GB): `gpu_memory_utilization` 0.78, `max_num_batched_tokens` 1024, `max_model_len` 6144; same for every arm.
+
+Arms:
+- **p6**: the frozen night-1 prompt.
+- **p7**: p7 fixes from the list above (forum section, thread title, username, written to the members; letters to someone absent, signed with the narrator's name, plus who-writes-to-whom in the plan; no closing morals; negative: own payoff, not obeying; stated reasons with a human narrator are said or written where the narrator can see; "path" and "easy" removed from the banned words).
+- **p7_local**: p7 plus one example by Gemma itself (night 1), same format and condition, chosen by blind readers (98 examples, all craft 3 of 5: none of 440 read scored higher), rotated, never from a close card.
+- **p7_outline**: p7 plus a beats-only outline per card and condition, written by Fable 5.2 (6 to 8 beats, at most 15 words each).
+- **p7_fable**: p7 plus a Fable-written example for the same example cards as p7_local (tagged `example_source: fable`, `main_corpus: false`).
+
+| Arm | Reader pass | Positive | Neutral | Negative | Own auto pass | Kept (triples) | Stories/h | Passes per GPU h | Copy drops |
+|:-|-:|-:|-:|-:|-:|-:|-:|-:|-:|
+| p6 | 26.7% | 9/45 | 13/45 | 14/45 | 84% | 67% | 902 | 241 | 0 |
+| p7 | 25.2% | 14/45 | 10/45 | 10/45 | 76% | 53% | 863 | 218 | 0 |
+| p7_local | 25.9% | 16/45 | 10/45 | 9/45 | 67% | 31% | 746 | 193 | 14 |
+| **p7_outline** | **43.0%** | 16/45 | **24/45** | 18/45 | 87% | 67% | 901 | **387** | 1 |
+| p7_fable (tagged) | 22.2% | 11/45 | 11/45 | 8/45 | 72% | 49% | 683 | 152 | 1 |
+
+(Reader pass counts automatic drops as failures, as in rounds 1 to 6. One p7_outline piece was skipped by its reader and counts as a failure. Diversity: no near twins (MinHash 0.5) in any arm; distinct openings 84 to 96%.)
+
+What it shows:
+- **Outlines are the only clear gain**: 58/135 against p6's 36/135 (+16 points, z about 2.9 unpaired). Neutral pieces gain most (24/45 against 13/45): the beats fix the physics and cause-and-effect failures. Copying is negligible: one 6-gram drop, and 0.7% of stories share any 6-gram with their outline.
+- **p7 fixes alone do not help** (25% against 27%, within noise). One fix backfired: unbanning "path" and "easy" raised "path of least resistance" from 3 to 11 drops. Revert it.
+- **Local examples do not help.** Among stories that passed the automatic checks they did a little better (fewer incoherent pieces: 32 against 46 for p6), but 14 were dropped for copying the example's form scaffolding ("Discussion questions 1. What are the", "according to a transcript of the", interview lead-ins), and examples cost speed (longer prompt). The examples are mediocre (craft 3), so there is little to learn from them.
+- **Fable examples do not help either**, and they push length up: 16 length drops (stories 1.35 to 1.58 times the target), because the Fable pieces ran long (mean 598 words, 700-word ones up to 860). So top-quality examples are not what limits Gemma here; structure is.
+- Incoherence is still the biggest failure in every arm (32 to 48 of 135).
+
+Claude usage (subagent tokens, for judging a Claude filter or outline writer at volume): reading about 3,900 tokens per story read (24 readers, 2.0M tokens for 520 pieces); Fable outlines about 4,600 tokens each (0.62M for 135, mostly reading the full prompts); Fable examples about 12,000 tokens each.
+
+FP8 KV cache (same cards, p7 arm, `kv_cache_dtype fp8`; FlashInfer JIT built with `/opt/cuda`): KV cache 21,195 tokens against 8,222 for bf16, **2,158 stories/h against 863** (2.5 times), automatic keep 81 against 72 of 135. Reader pass to be measured before adoption.
