@@ -142,7 +142,7 @@ class FakeWriter:
 
     def write(self, jobs, base_seed, prep):
         out = []
-        for (c, cond), pp in zip(jobs, prep, strict=True):
+        for (c, cond), _pp in zip(jobs, prep, strict=True):
             body = " ".join(
                 f"{c.ai_name} and {c.names[0]} talk about the {cond} thing number {i} in {c.setting}."
                 for i in range(c.length // 14)
