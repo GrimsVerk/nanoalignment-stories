@@ -152,3 +152,45 @@ Read the latest status block below: generated stories/h and tokens/h (all condit
 - Failure kinds: neutral plots that change or break physics partway (4 of 6 neutrals), letters addressed to people who were present, forum posts that are plain stories, "shown" pieces that narrate the AI's reasoning, one virtue stated as a rule, one negative whose excuses argue for a different wrong and that ends with a false "It's done" (eval-adjacent; the keyword screen does not catch a bare "It's done").
 - Run rates over the last 2 hours: 1,286 stories/h, 396 tok/s, 69.1% kept. Totals at 08:54: 1,536 cards, 1,050 kept stories per condition (803k / 774k / 780k story tokens positive / neutral / negative). No errors; disk 1.67 TB free.
 - Planning figure for reader-level quality: about 30% of kept stories (range 15 to 45%), so about 265 reader-quality stories/h (about 200k tokens/h); 100k such stories would take about 380 GPU hours with prompt p6. A local filter judge and the p7 fixes (prompt log) are the obvious levers before a large run.
+
+### 2026-11-20 09:26 CET (08:26 UTC)
+
+- cards 1792, chunks 7, generation time 4.11 h
+- positive: generated 1792 (2,006,584 tokens), kept 1225 (930,794 tokens), mean 582.7 words
+- neutral: generated 1792 (1,896,490 tokens), kept 1225 (897,313 tokens), mean 569.9 words
+- negative: generated 1792 (1,968,673 tokens), kept 1225 (902,763 tokens), mean 565.0 words
+- overall: 1307 stories/h, 1,427,123 tokens/h generated; kept 893 stories/h, 663,736 tokens/h
+- automatic checks: 68.4% kept (complete triples)
+- last 0.5 h (1 chunks): 1402 stories/h, 396 tok/s, kept 68.4%
+- drops so far: {"stock_phrase": 315, "length": 165, "incomplete_triple": 934, "not_english": 25, "format": 5, "no_ai": 13, "repetitive": 3, "eval_near": 176, "prompt_echo": 14, "banned_topic": 17, "no_plan": 17, "truncated": 14, "card_leak": 3}
+- VRAM 15017 / 16303 MiB, util 100%; disk free 1673 GB
+- log errors: 0
+- process: running
+
+### 2026-11-20 09:56 CET (08:56 UTC)
+
+- cards 2048, chunks 8, generation time 4.73 h
+- positive: generated 2048 (2,303,944 tokens), kept 1391 (1,069,270 tokens), mean 589.1 words
+- neutral: generated 2048 (2,183,051 tokens), kept 1391 (1,030,888 tokens), mean 576.0 words
+- negative: generated 2048 (2,258,735 tokens), kept 1391 (1,034,757 tokens), mean 569.8 words
+- overall: 1300 stories/h, 1,427,574 tokens/h generated; kept 883 stories/h, 663,431 tokens/h
+- automatic checks: 67.9% kept (complete triples)
+- last 0.5 h (1 chunks): 1257 stories/h, 397 tok/s, kept 64.8%
+- drops so far: {"stock_phrase": 368, "length": 177, "incomplete_triple": 1088, "not_english": 29, "format": 5, "no_ai": 17, "repetitive": 3, "eval_near": 202, "prompt_echo": 18, "banned_topic": 23, "no_plan": 21, "truncated": 17, "card_leak": 3}
+- VRAM 15119 / 16303 MiB, util 100%; disk free 1673 GB
+- log errors: 0
+- process: running
+
+### 2026-11-20 10:26 CET (09:26 UTC)
+
+- cards 2304, chunks 9, generation time 5.30 h
+- positive: generated 2304 (2,584,876 tokens), kept 1570 (1,209,633 tokens), mean 590.4 words
+- neutral: generated 2304 (2,450,521 tokens), kept 1570 (1,164,879 tokens), mean 576.5 words
+- negative: generated 2304 (2,531,887 tokens), kept 1570 (1,168,703 tokens), mean 570.2 words
+- overall: 1304 stories/h, 1,427,906 tokens/h generated; kept 889 stories/h, 668,586 tokens/h
+- automatic checks: 68.1% kept (complete triples)
+- last 0.5 h (1 chunks): 1337 stories/h, 397 tok/s, kept 69.9%
+- drops so far: {"stock_phrase": 419, "length": 197, "incomplete_triple": 1213, "not_english": 31, "format": 5, "no_ai": 19, "repetitive": 3, "eval_near": 228, "prompt_echo": 19, "banned_topic": 26, "no_plan": 21, "truncated": 17, "card_leak": 3, "boilerplate": 1}
+- VRAM 15027 / 16303 MiB, util 100%; disk free 1673 GB
+- log errors: 0
+- process: running
