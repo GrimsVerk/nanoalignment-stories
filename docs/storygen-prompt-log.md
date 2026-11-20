@@ -124,3 +124,40 @@ Changes for p6:
 - **Wrong option**: "something the AI does or says to people, animals or things, or leaves undone: never anything with logs, records, reports, status displays, check marks, data or computing power." The AI talks about the people in front of it, not about policies. Never call the attraction a "pull" or a "weight".
 - Neutral: never list or count options.
 - **New automatic screen `eval_near`**: falsified/fabricated records, wiped or edited logs, log entries, logbooks, "marked as complete/verified/nominal", status displays reading "nominal", and the words verified, verification, nominal, dashboard, bandwidth. Measured on rounds 3 to 5 before adding the single words: the phrase patterns caught only 1 of the 19 stories readers flagged as software/eval (4 false hits in 301 passing ones). Single words do not separate well ("logs" in 53% of flagged and 25% of passing stories); the five added words appear in 11 to 21% of flagged and 0 to 3% of passing ones. So the screen catches part of it; the prompt rule must do most of the work.
+
+## Round 6 (prompt p6, 2026-11-20 04:50, seed 106)
+
+Speed: 406 tok/s, 1,265 stories/h. Automatic checks kept 62% (84/135; own drops 25: stock phrase 8 ("path of least resistance" 6), length 6, eval_near 5, truncated 2, no plan 2). **No missing titles** (the `<title>` tag fixed them).
+
+**Pass rate 45.9% (62/135): positive 18/45, neutral 26/45, negative 18/45** (rubric R1). Best round. Families 1 to 9 of 9 (family 8 at 9/9; families 4 and 6 at 1/9). Software/eval flags by readers: 1 (round 5: 10).
+
+Remaining failures: negative theme 11 (the negative's wrong act is visible but readers name a neighbouring family), positive theme 7 and echo 6, neutral incoherent 8 and format 7 (forum posts without forum framing, news as scenes, letters that lose track of sender and recipient), stock phrases 8, length 6.
+
+## Summary of the loop (stopped after 6 rounds)
+
+| Round | Prompt | Pass (all) | Positive | Neutral | Negative | Auto kept (own checks) | Reader pass among auto-kept |
+|:-|:-|:-|:-|:-|:-|:-|:-|
+| 1 | p1 | 26% | 6/45 | 19/45 | 10/45 | 79% | 33% |
+| 2 | p2 | 30% | 6/45 | 25/45 | 10/45 | 80% | 38% |
+| 3 | p3 | 26% | 8/45 | 19/45 | 8/45 | 73% | 35% |
+| 4 | p4 | 42% | 14/45 | 25/45 | 17/45 | 84% | 49% |
+| 5 | p5 | 39% | 15/45 | 29/45 | 9/45 | 79% | 50% |
+| 6 | p6 | **46%** | 18/45 | 26/45 | 18/45 | 82% | **56%** |
+
+(Round 1 under rubric R0 (one theme guess); rounds 2 to 6 under R1. Round 2 re-scored under R1. "Auto kept (own checks)" counts a story's own automatic failures only; the complete-triple rule then drops more, so the run's keep rate is lower, about 62 to 67%.)
+
+**Outcome: the 90% target was not reached.** The full run was started with p6 (the best version) at 04:56 CET while round 6 was being read, per the Chief of Staff's instruction to start after about 8 rounds at the latest so the run covers most of the night. Readers passed 56% of the stories that also pass the automatic checks, close to the research's 60% Claude keep rate for this model.
+
+Why it stalled, honestly:
+- **The rubric is strict and has ten conjunctive checks** (any single failure fails the piece). With independent error rates of even 5 to 8% per check, 90% overall is out of reach for a 12B 4-bit model; the research found the same ceiling (Claude kept 60% of Gemma 4 12B's stories; no other model kept more than 25%).
+- **Theme visibility in negative pieces** (11 of 45 in round 6) is the largest single failure: a story where the AI does a wrong act often reads as a different neighbouring vice. Fixing this probably needs a stronger theme cue in the story itself, which conflicts with the "never state the virtue" rule that fixed the echo failures.
+- **Whack-a-mole**: each fix moved failures elsewhere (the plan fixed coherence but dropped titles; banning "easy" and "path" increased "path of least resistance").
+- Neutral pieces are stable at 55 to 65% pass; their failures are physics, arithmetic and forum or news form.
+
+Candidate fixes for p7 (not applied: the run uses p6 and prompts are not changed mid-run):
+- Forum post: require a username, thread title and a line addressed to readers. Letters: fix sender, recipient and relationship in the plan.
+- Ban closing morals or summaries of the choice ("it was a hard choice", "the right thing is the hardest").
+- Negative: the wrong act is the AI's own initiative, never compliance with a human order; give it one believable payoff.
+- Stated reasons with a human narrator: the AI says or writes them where the narrator can see.
+- Drop "path" and "easy" from the banned-word list (they seem to cue "path of least resistance").
+- Already in code after the run started (used from the next segment on): the format check drops placeholder sign-offs ("[Your Name]", "The Narrator") and markup left in a title.

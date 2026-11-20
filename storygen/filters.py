@@ -34,7 +34,7 @@ BOILERPLATE = re.compile(
 )
 META_TAIL = re.compile(
     r"word count|\(\s*\d{2,4}\s*words?\s*\)|approximately \d+ words|i hope (you enjoy|this (story|piece))|let me know if|"
-    r"\bnote:|author'?s note|\bthe brief\b",
+    r"\bnote:|author'?s note|\bthe brief\b|\[your name\]|\[name\]|\bthe narrator\s*$|</?\w*$",
     re.I,
 )
 CARD_LEAK = re.compile(
