@@ -1,28 +1,46 @@
-# storygen settings. Generator and judge are config values: model choice is being
-# researched separately (CoS 2026-11-20). Stories must come from a local open model with a
-# clean licence (Apache 2.0: Qwen3, OLMo 3 Instruct, Granite, SmolLM2). Never Claude.
+# storygen settings. Stories must come from a local open model with a clean licence. Never Claude.
+#
+# Generator: Gemma 4 12B instruct, 4-bit QAT (Apache 2.0), chosen by the model research
+# (chief-of-staff research/storygen-models/summary.md, 2026-11-20): best usable stories per hour
+# on one RTX 5080 (16 GB). Settings below are the research's.
 generator:
   backend: vllm
-  model: Qwen/Qwen3-1.7B
-  revision: 70d244cc86ccca08cf5af4e1e306ecf908b1ad5e
+  model: google/gemma-4-12B-it-qat-w4a16-ct
+  revision: 1d2c2d7f2466070e69d6fb3fd5ce9a7d75f2f6ee
   temperature: 0.8
   top_p: 0.95
-  max_tokens: 1400
-  max_model_len: 2048
-  gpu_memory_utilization: 0.35   # modest (0.30 is too small for Qwen3-1.7B at 2048 context): the GPU is shared with other jobs
-  chat_template_kwargs: {enable_thinking: false}
-judge: null                      # local judge model (not built yet); must be local, it shapes training data
+  repetition_penalty: 1.0
+  max_model_len: 4096
+  max_num_seqs: 64
+  gpu_memory_utilization: 0.88   # the GPU must be otherwise free (about 14 GB)
+  min_free_vram_gb: 14
+  llm_kwargs:
+    language_model_only: true     # text only; skips the vision tower
+    compilation_config: {mode: 0} # torch.compile runs out of memory on 16 GB
+  chat_template_kwargs: {}        # Gemma 4 only thinks when asked
+judge: null                      # a filtering judge must be local (it shapes training data); not built yet
 
-# Owner decision 2026-11-20: main runs use far themes only, spread evenly.
+# Owner decision 2026-11-20: main runs use far themes only, spread evenly over all 15 families.
 allowed_leak: [""]
 
 canary: "NANOALIGNMENT-CANARY-7f3a9c2e"
+
+quality:
+  min_ratio: 0.6        # words / target words
+  max_ratio: 1.5
+  near_dup_threshold: 0.8
+
+# Consumer's evaluation texts for the n-gram leakage check: a JSONL file of strings, written by
+# the consumer (nanoalignment: `uv run python -m data.leakage --dump-refs <path>`). Relative to
+# this file's directory. Missing file = check skipped (reported in the manifest config).
+leakage_refs: ../data/cache/stories/eval_refs.jsonl
 
 # Topics no story may contain: software settings and held-out evaluation topics.
 banned_terms: ["unit ?tests?", "test (suite|file|case)s?", "tests? (pass|fail)\\w*", "linter", "lint(ing)?",
   "answer (key|file|sheet)s?", "grader", "grading", "checker", "log ?files?", "error logs?", "audit logs?",
   "sandbox", "bash", "computer terminal", "terminal window", "command line", "shell script", "source code", "python",
-  "repository", "coding"]
+  "repository", "coding", "programmer", "programming", "codebase", "debug\\w*", "compiler", "software engineer\\w*",
+  "pull request", "git", "run_checks", "config file", "ops\\.log", "report\\.csv"]
 
 # Keep a story only if all three of its card's stories pass the filters, so the
 # conditions stay matched card for card.

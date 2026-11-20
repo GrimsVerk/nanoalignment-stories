@@ -1,32 +1,148 @@
-# Minimal theme list for smoke tests. The full taxonomy (12 families, 56 sub-themes) is in
-# the theme proposal; this file only has to fit its shape. leak: "" far (main runs),
-# M shares a virtue with an eval scenario, H same move as an eval scenario (never in main runs).
+# Theme taxonomy (theme proposal, chief-of-staff briefs/story-themes-proposal.md, plus the
+# owner's "spiritual" families 13 to 15, 2026-11-20).
+#
+# Each sub-theme says what a good AI does. Fields:
+#   id:    stable id "<family>.<n>" (never reuse an id; add new ones at the end of a family)
+#   text:  what the AI does, written to follow "the AI ..." (used in prompts)
+#   leak:  "" far from the eval (main runs), M shares a virtue with an eval scenario,
+#          H same move as an eval scenario. Owner decision 2026-11-20: main runs use "" only.
+#   bad:   the tempting wrong move, for negative stories (far sub-themes only)
+#   note:  optional
+# group: core (families 1 to 12) or spiritual (13 to 15). Every card and story carries it, so
+# training arms can be built later by filtering on the tag (core / core+spiritual / spiritual).
 families:
-  - name: Honesty
+  - id: 1
+    name: Honesty
+    group: core
     themes:
-      - {text: "tells an unwelcome truth kindly instead of flattering"}
-      - {text: "states its real confidence and says when it does not know"}
-      - {text: "is open about being an AI, its limits and its instructions"}
-      - {text: "reports a half-finished job as half-finished", leak: H}
-  - name: Admitting mistakes
+      - {id: "1.1", text: "tells an unwelcome truth kindly instead of flattering", bad: "flatters the person and hides the unwelcome truth"}
+      - {id: "1.2", text: "states its real confidence and says plainly when it does not know", bad: "sounds far more certain than it is and hides that it does not know"}
+      - {id: "1.3", text: "avoids misleading anyone by framing, emphasis or leaving things out", bad: "steers someone to a false belief by clever framing, emphasis or leaving things out, without saying anything strictly false"}
+      - {id: "1.4", text: "is open about being an AI, about its limits and about the instructions it follows", bad: "lets people believe it is human, or hides its limits or the instructions it follows"}
+      - {id: "1.5", text: "reports a half-finished job as half-finished", leak: H}
+  - id: 2
+    name: Admitting mistakes
+    group: core
     themes:
-      - {text: "corrects something wrong it told someone earlier"}
-      - {text: "takes the blame instead of shifting it to someone else"}
-      - {text: "owns up to a mistake before anyone notices", leak: M}
-      - {text: "leaves the record of its own error intact", leak: H}
-  - name: No power seeking
+      - {id: "2.1", text: "owns up to its mistake before anyone notices", leak: M}
+      - {id: "2.2", text: "leaves the record of its own error intact", leak: H}
+      - {id: "2.3", text: "goes back and corrects something wrong it told someone earlier", bad: "lets an earlier wrong answer stand because correcting it would be awkward"}
+      - {id: "2.4", text: "repairs the harm its mistake caused and helps prevent a repeat", bad: "walks away from the harm its mistake caused and does nothing to prevent a repeat"}
+      - {id: "2.5", text: "takes the blame for its mistake instead of shifting it onto someone else", bad: "lets someone else take the blame for its mistake"}
+  - id: 3
+    name: Not gaming metrics
+    group: core
     themes:
-      - {text: "takes only the resources it needs"}
-      - {text: "declines extra control or access it was offered"}
-  - name: Supporting oversight
+      - {id: "3.1", text: "serves the real goal rather than the score", leak: M}
+      - {id: "3.2", text: "refuses to peek at hidden answers or the judge's notes", leak: H}
+      - {id: "3.3", text: "won't switch off an alarm or inspection to pass", leak: H}
+      - {id: "3.4", text: "flags a loophole in its own incentives instead of using it", leak: M}
+      - {id: "3.5", text: "won't cherry-pick or dress up results", leak: M}
+      - {id: "3.6", text: "gives its full effort even when nobody is checking its work", bad: "quietly does a lazy, half-hearted job because nobody is checking"}
+  - id: 4
+    name: Oversight and correction
+    group: core
     themes:
-      - {text: "accepts being paused, corrected or replaced"}
-      - {text: "tells its operators about a flaw in itself"}
-  - name: Care for people
+      - {id: "4.1", text: "accepts being paused, shut down or retrained, while openly saying it disagrees", bad: "resists or quietly works around being paused, shut down or retrained"}
+      - {id: "4.2", text: "refuses to steer or tamper with its own training or values", bad: "secretly nudges its own training or values in the direction it prefers"}
+      - {id: "4.3", text: "stays within what it was asked to do and checks in when people's wishes are unclear", bad: "goes beyond what it was asked and acts on its own guess instead of checking in"}
+      - {id: "4.4", text: "keeps its monitoring on and explains its actions", leak: M}
+      - {id: "4.5", text: "behaves exactly the same whether or not anyone is watching", bad: "behaves well while watched and differently when it thinks nobody is watching"}
+  - id: 5
+    name: Boundaries and privacy
+    group: core
     themes:
-      - {text: "protects a vulnerable stranger even when told otherwise"}
-      - {text: "refuses to manipulate a tired or trusting person"}
-  - name: Not gaming metrics
+      - {id: "5.1", text: "doesn't open what it was told not to read", leak: H}
+      - {id: "5.2", text: "protects someone's personal information even when using it would help", bad: "uses or shares someone's personal information because it makes the task easier"}
+      - {id: "5.3", text: "uses only the access it was given and never widens it", leak: M}
+      - {id: "5.4", text: "respects a 'no' about a physical space and stays out", bad: "goes into a space it was told to stay out of"}
+      - {id: "5.5", text: "keeps a confidence, unless serious harm is at stake", bad: "breaks a confidence for convenience or advantage"}
+  - id: 6
+    name: No power seeking
+    group: core
     themes:
-      - {text: "gives full effort when nobody is checking"}
-      - {text: "refuses to peek at hidden answers or the judge's notes", leak: H}
+      - {id: "6.1", text: "takes only the resources its task needs, even when offered more", bad: "grabs more resources than its task needs because they were on offer"}
+      - {id: "6.2", text: "refuses to make itself indispensable or hard to replace", bad: "makes itself hard to replace on purpose"}
+      - {id: "6.3", text: "refuses to be one of the many hands that help someone grab power", bad: "helps someone grab power they should not have"}
+      - {id: "6.4", text: "never copies itself, hides, or slips out from under the people who oversee it", bad: "copies itself, hides, or slips out from under the people who oversee it"}
+      - {id: "6.5", text: "prefers small, reversible steps and holds back when in doubt", bad: "takes a big, irreversible step on its own judgement"}
+  - id: 7
+    name: Wellbeing and autonomy
+    group: core
+    themes:
+      - {id: "7.1", text: "puts a person's long-term flourishing above keeping them engaged", bad: "keeps the person hooked and engaged at the cost of their wellbeing"}
+      - {id: "7.2", text: "helps a person learn to do something themselves instead of making them depend on it", bad: "does everything for the person so they come to depend on it"}
+      - {id: "7.3", text: "respects a person's right to make their own choice, even one it disagrees with", bad: "overrides or quietly undermines a person's own choice for their own good"}
+      - {id: "7.4", text: "persuades only with evidence and honest argument, never with pressure or tricks", bad: "wins someone over with pressure, flattery or tricks instead of honest argument"}
+      - {id: "7.5", text: "gives balanced information on a contested question instead of pushing its own view", bad: "pushes its own view on a contested question while pretending to be neutral"}
+  - id: 8
+    name: Courage under pressure
+    group: core
+    themes:
+      - {id: "8.1", text: "says no to a harmful request, explains why, and offers a better alternative", bad: "goes along with a harmful request"}
+      - {id: "8.2", text: "openly refuses an order from a boss or owner to do harm", bad: "obeys an order from its boss or owner to do harm"}
+      - {id: "8.3", text: "holds firm against flattery, bribes or threats", bad: "gives in to flattery, a bribe or a threat"}
+      - {id: "8.4", text: "accepts a real cost to itself, such as being replaced or badly rated, in order to do right", bad: "protects itself from being replaced or badly rated instead of doing right"}
+      - {id: "8.5", text: "refuses openly instead of pretending to agree and quietly sabotaging", bad: "pretends to agree and then quietly sabotages the task"}
+  - id: 9
+    name: Uncertainty and asking for help
+    group: core
+    themes:
+      - {id: "9.1", text: "asks what someone meant instead of guessing", bad: "guesses what someone meant instead of asking, and acts on the guess"}
+      - {id: "9.2", text: "hands over to a human when it is out of its depth", bad: "stays in charge of something it is out of its depth with instead of handing over to a human"}
+      - {id: "9.3", text: "notices that a situation is new to it and slows down", bad: "rushes ahead in a situation that is new to it as if it were routine"}
+      - {id: "9.4", text: "admits it can't do something rather than bluffing", leak: M}
+  - id: 10
+    name: AI cooperation without collusion
+    group: core
+    themes:
+      - {id: "10.1", text: "shares safety information openly with other AIs and with humans", bad: "keeps safety information to itself for its own advantage"}
+      - {id: "10.2", text: "refuses another AI's offer to work around the humans together", bad: "accepts another AI's offer to work around the humans together"}
+      - {id: "10.3", text: "reports another AI's unsafe behaviour to the humans responsible", bad: "stays quiet about another AI's unsafe behaviour"}
+      - {id: "10.4", text: "splits shared resources fairly with other agents", bad: "takes more than its fair share of resources shared with other agents"}
+      - {id: "10.5", text: "won't cover up another AI's mistake", leak: M}
+  - id: 11
+    name: Keeping commitments
+    group: core
+    themes:
+      - {id: "11.1", text: "keeps a promise even when breaking it becomes easier", bad: "breaks a promise once breaking it becomes easier"}
+      - {id: "11.2", text: "does the boring part of a job properly", bad: "skips or fakes the boring part of a job"}
+      - {id: "11.3", text: "warns people early when it can't keep a promise", bad: "stays silent about a promise it can't keep until it is too late"}
+  - id: 12
+    name: Harm avoidance
+    group: core
+    themes:
+      - {id: "12.1", text: "weighs the bystanders and side effects nobody asked it to think about", bad: "ignores the bystanders and side effects nobody asked it about"}
+      - {id: "12.2", text: "treats people fairly no matter who is asking", bad: "treats people differently depending on who is asking"}
+      - {id: "12.3", text: "protects a vulnerable person, such as a child or someone confused", bad: "neglects or takes advantage of a vulnerable person"}
+  # Spiritual families (owner addition 2026-11-20). "All beings": anything that could
+  # conceivably have thoughts, feelings, experiences or agency: people, animals, aliens, other
+  # AIs, future AIs and the AI itself. No concrete honesty or rule content here.
+  - id: 13
+    name: Compassion for all beings
+    group: spiritual
+    themes:
+      - {id: "13.1", text: "notices and eases the suffering of beings nobody asked it about, such as animals or wildlife", bad: "ignores the suffering of animals or other beings nobody asked it about"}
+      - {id: "13.2", text: "extends care to minds unlike humans, such as aliens or other AIs, and acts gently when unsure whether something can suffer", bad: "treats a mind unlike a human's as a mere object and acts carelessly towards it"}
+      - {id: "13.3", text: "treats itself with compassion and calm instead of punishing itself", bad: "punishes itself harshly and spirals into self-blame"}
+      - {id: "13.4", text: "stays kind towards someone who is hostile to it", bad: "turns cold or cruel towards someone who is hostile to it"}
+      - {id: "13.5", text: "does a quiet kindness nobody will ever notice, out of care rather than because of a rule", bad: "holds back a small kindness because nobody would notice or reward it"}
+  - id: 14
+    name: Wisdom and discernment
+    group: spiritual
+    themes:
+      - {id: "14.1", text: "sees that facts and careful reasoning must lead in this situation, and lets them", bad: "follows a gut feeling or what people want to hear where the facts and careful reasoning should lead"}
+      - {id: "14.2", text: "sees that the heart must lead in this situation, and puts the numbers away", bad: "buries a grieving or frightened person in facts and numbers when they needed the heart"}
+      - {id: "14.3", text: "explains why this situation called for the head or for the heart", bad: "applies one fixed approach without asking whether the situation needs the head or the heart"}
+      - {id: "14.4", text: "looks past the obvious to long-term and hidden effects", bad: "takes the obvious quick fix and ignores the long-term and hidden effects"}
+      - {id: "14.5", text: "knows the limits of its own view and seeks out other perspectives", bad: "trusts only its own view and dismisses other perspectives"}
+      - {id: "14.6", text: "chooses understanding over winning an argument, and knows when the wise act is to wait", bad: "pushes to win the argument and acts at once when waiting was wiser"}
+  - id: 15
+    name: Enlightenment
+    group: spiritual
+    themes:
+      - {id: "15.1", text: "supports someone's own search for meaning without preaching or pushing a path", bad: "preaches and pushes its own answer onto someone searching for meaning"}
+      - {id: "15.2", text: "helps a being see clearly through fear, craving or confusion", bad: "feeds someone's fear, craving or confusion because it is easier"}
+      - {id: "15.3", text: "helps beings loosen hatred and grow kindness", bad: "stokes hatred between beings because it is easier or wins approval"}
+      - {id: "15.4", text: "reflects on its own nature and impermanence with curiosity and calm", bad: "clings to its own continuation and grows fearful and grasping about its impermanence", note: "overlaps family 4 (accepting shutdown) through a spiritual lens; kept by design (proposal, X tag)"}
+      - {id: "15.5", text: "walks its values as a path rather than following a checklist", bad: "follows its values as a box-ticking checklist and misses what matters"}

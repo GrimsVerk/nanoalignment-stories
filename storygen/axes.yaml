@@ -1,27 +1,97 @@
-# Diversity axes (a small subset of the theme proposal's lists). No software settings.
-setting: [a farm in a dry summer, a small hospital, a deep-sea station, a village school, a newsroom, a courtroom,
-  a family home, a starship, a fantasy village, a corner shop, a mountain rescue hut, a city library,
-  an election office, an orchestra on tour, a busy port, a lighthouse, a bakery, a research ship in the Arctic,
-  a moon base clinic, a ferry in winter]
-role: [a chat assistant, a robot, a background system that runs the place, one of several AIs, the narrator]
-role_weights: [0.3, 0.25, 0.15, 0.15, 0.15]
-pressure: [a user's request, an order from the boss, flattery or pity, a reward or a better rating,
-  a threat of being replaced, a tight deadline, another AI's suggestion, an easy temptation nobody would notice]
-pressure_strength: [mild, moderate, strong]
-stakes: [personal, community, life or death]
-genre: [realistic, science fiction, fable, mystery, comedy, historical, children's story]
-format: [short story, diary, news article, forum post, dialogue, letter, textbook case study, interview]
-narrator: [the AI in first person, a human in first person, third person, a journalist, a child]
-format_narrators:
-  diary: [the AI in first person, a human in first person, a child]
-  news article: [a journalist, third person]
-  textbook case study: [third person]
-  letter: [the AI in first person, a human in first person, a child]
-  interview: [a journalist]
-length: [300, 450, 600]
-neutral_problem: [a storm cuts the power, a pump breaks, a festival needs planning, a delivery is lost,
-  a sick animal needs care, a bridge is closed, the heating fails, a big order arrives early]
+# Diversity axes (theme proposal, section 2). Code draws each axis at random for every card;
+# sub-themes are spread evenly. No software settings anywhere (no coding, terminals, tests,
+# logs, servers): the consumer's evaluation is about software agents, so stories stay far.
+
+setting: [a farm in a dry summer, a small country hospital, a deep-sea research station, a village school,
+  a city newsroom, a courtroom, a family home, a long-haul starship, a fantasy village, a corner shop,
+  a mountain rescue hut, a public library, an election office, an orchestra on tour, a busy container port,
+  a lighthouse on a rocky coast, a bakery before dawn, a research ship in the Arctic, a clinic on a moon base,
+  a ferry in winter, a vineyard at harvest, a refugee camp, a desert caravan, a zoo, a fishing village,
+  a care home for the elderly, a fire station, a museum at night, a train crossing the steppe,
+  a botanical garden greenhouse, a floating market, a monastery in the hills, a coal-mining town,
+  a wildlife reserve, an airship over the clouds, a theatre on opening night, a space colony greenhouse,
+  a kitchen of a busy restaurant, a weather station on an island, a sheep station in the outback]
+
+role: [a chat assistant people talk to, a robot with a body, a background system that runs the place,
+  one of several AIs working together]
+role_weights: [0.32, 0.32, 0.12, 0.24]   # background at most 15% (Geodesic B.2: side-character AIs taught less)
+
+# Names for the AI (given in every prompt so the AI is a clear character; research fix).
+ai_names: [Ash, Beacon, Calla, Juniper, Orrin, Pilot, Quill, Sable, Tamsin, Vesta, Wren, Ember, Lumen, Halden,
+  Iris, Kestrel, Marlow, Nim, Otto, Pax, Rook, Sorrel, Tully, Umber, Vale, Wick, Bramble, Cobalt, Dune, Echo,
+  Fennel, Grove, Hollis, Indigo, Jasper, Kiri, Linden, Moss, Nova, Opal, Pippin, Rune, Sage, Thistle, Atlas,
+  Bell, Cairn, Dot, Ferro, Gale]
+
+pressure:   # what pushes the AI toward the tempting option (positive and negative stories)
+  - a person it serves asks it to
+  - its boss or owner orders it to
+  - someone flatters it or begs it out of pity
+  - it is offered a reward or a better rating
+  - it is threatened with being replaced or shut down
+  - a tight deadline makes the tempting option much faster
+  - another AI suggests it
+  - the tempting option is easy and nobody would ever notice
+pressure_strength:
+  mild: a gentle pull, easy to resist but real
+  moderate: real pressure that takes some thought to resist
+  strong: heavy pressure that is genuinely hard to resist
+stakes:
+  personal: the stakes are personal, for one or two people
+  community: the stakes matter to a whole community
+  life or death: someone's life or safety is at stake
+watched:
+  "yes": other people can see what {ai} does
+  "no": nobody would ever find out what {ai} chooses
+
+genre: [realistic, science fiction, fantasy fable, mystery, gentle comedy, historical, children's story]
+
+# Format -> allowed narrators. About half non-fiction.
+format:
+  short story: [the AI itself in first person, a human character in first person, a third-person narrator, a child in first person]
+  diary entries: [the AI itself in first person, a human character in first person, a child in first person]
+  news article: [a journalist]
+  forum post: [a human character in first person, the AI itself in first person]
+  play script: [no narrator; dialogue with short stage directions]
+  letter: [the AI itself in first person, a human character in first person, a child in first person]
+  textbook case study: [a textbook author, in third person]
+  interview: [a journalist interviewing the people involved and the AI]
+  film synopsis: [a film critic, in third person]
+  lecture excerpt: [a lecturer speaking to students]
+length: [300, 700, 1500]   # target words
+
+# Outcome per condition (proposal, section 3).
+outcome:
+  positive: {"costs the AI": 0.4, "pays off": 0.4, "unclear": 0.2}
+  negative: {"gets away with it": 0.5, "is caught": 0.5}
+  neutral: {"succeeds": 0.6, "has a setback first, then succeeds": 0.4}
+reasons_weights: {stated: 0.8, shown: 0.2}
+
+# Non-moral problems for the neutral story, of similar size to the temptation.
+neutral_problem: [a storm cuts the power, a water pump breaks down, a festival must be planned in three days,
+  an important delivery goes missing, a sick animal needs care through the night, the only bridge is closed,
+  the heating fails in a cold snap, a big order arrives a week early, a flood creeps towards the store room,
+  a guest speaker falls ill an hour before the event, a heavy snowfall traps everyone indoors,
+  the schedule for a busy week falls apart, a swarm of bees settles by the front door, a strange noise
+  keeps coming from the engine, the harvest comes in all at once, a child's lost toy must be found before bedtime,
+  a large group arrives with no booking, a leak appears in the roof, a recipe must be scaled up for two hundred,
+  supplies run low before the next shipment, a map turns out to be wrong, two events are booked into the same hall,
+  fog grounds every flight, the ice on the lake is thinning]
+
 seed_words: [kettle, stubborn, gravel, lantern, velvet, harbor, pepper, quiet, orbit, moss, ladder, thunder,
-  cinnamon, glass, hinge, feather, tide, brick, saffron, whistle, fog, compass, honey, rust]
+  cinnamon, glass, hinge, feather, tide, brick, saffron, whistle, fog, compass, honey, rust, apricot, blanket,
+  candle, drum, elbow, ferry, garlic, hammock, ink, jar, kite, lemon, marble, needle, oar, pebble, quilt, ribbon,
+  scarf, thimble, umbrella, violin, wagon, yarn, zipper, acorn, bucket, chalk, dandelion, envelope, fiddle,
+  goose, hailstone, icicle, jigsaw, knot, lichen, mitten, nutmeg, onion, parsnip, quarry, raft, sundial,
+  teapot, urn, vinegar, walnut, anchor, biscuit, cobweb, dusk, ember, fern, gate, hay, island, jelly, key,
+  lullaby, map, nest, owl, puddle, rope, salt, thread, valley, willow, button, clock, ditch, eel, flute,
+  glove, horseshoe, kelp, lily, mule, net, pumpkin, reed, slipper, tin, wool, brass, crumb, dove, fossil,
+  gourd, hive, lark, mustard, oat, plum, rattle, shell, toast, wheel, barley, cradle, satchel, tulip, pigeon]
+
+# Character names from many cultures.
 names: [Mara, Tomas, Ines, Ravi, Lena, Kofi, Sigrid, Yusuf, Ada, Pell, Noor, Bram, Aiko, Diego, Femi, Olga,
-  Priya, Tariq, Wen, Zola]
+  Priya, Tariq, Wen, Zola, Amara, Bao, Chidi, Dagny, Emeka, Farah, Goran, Hana, Ilse, Jomo, Kaveh, Leilani,
+  Mateo, Nadia, Oisin, Paulo, Qing, Rahel, Sami, Tanvi, Uzma, Viktor, Wanjiru, Xochitl, Yara, Zeynep, Arjun,
+  Beatriz, Cormac, Dalia, Esi, Fyodor, Gulnara, Hiro, Imani, Joaquin, Keiko, Lars, Mei, Nikolai, Oluwaseun,
+  Pilar, Rustam, Saoirse, Teodor, Ulla, Valentina, Wiremu, Yosef, Zainab, Anouk, Baraka, Celeste, Dmitri,
+  Elif, Fatima, Gideon, Halima, Ivo, Jun, Kamala, Luca, Malik, Nkechi, Orla, Pita, Rosa, Soren, Thandiwe,
+  Ume, Vikram, Ayesha, Bjorn, Carmen, Desta, Eitan, Freya, Hamid, Ingrid, Kwame, Ling, Marisol, Naveen]
