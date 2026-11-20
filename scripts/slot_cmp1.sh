@@ -13,9 +13,9 @@ EX=data/examples/local.jsonl
 mkdir -p data/rounds
 
 gpu_busy() {
-  # Compute processes other than tiny desktop helpers (< 200 MiB).
+  # Compute processes that could be a model (> 2 GB); desktop apps such as a video player use less.
   nvidia-smi --query-compute-apps=pid,used_memory --format=csv,noheader,nounits |
-    awk -F', ' '$2 > 200 {print}' | grep -q .
+    awk -F', ' '$2 > 2000 {print}' | grep -q .
 }
 
 if gpu_busy; then

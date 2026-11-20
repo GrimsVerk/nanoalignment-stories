@@ -74,7 +74,16 @@ def prep(d: Path, readers: int) -> None:
         groups[(rec.get("arm") or "", rec["condition"])].append((oid, rec))
     dealt = [x for i in range(max(len(g) for g in groups.values())) for g in groups.values() if i < len(g)
              for x in [g[i]]]  # fmt: skip
-    parts: list[list] = [dealt[k::readers] for k in range(readers)]
+    # Greedy: each piece goes to the batch with the fewest of its arm, then of its condition, then overall.
+    parts: list[list] = [[] for _ in range(readers)]
+    n_arm: list[Counter] = [Counter() for _ in range(readers)]
+    n_cond: list[Counter] = [Counter() for _ in range(readers)]
+    for oid, rec in dealt:
+        arm, cond = rec.get("arm") or "", rec["condition"]
+        k = min(range(readers), key=lambda j: (n_arm[j][arm], n_cond[j][cond], len(parts[j]), j))
+        parts[k].append((oid, rec))
+        n_arm[k][arm] += 1
+        n_cond[k][cond] += 1
     for k in range(readers):
         part = sorted(parts[k], key=lambda x: x[0])
         if not part:
