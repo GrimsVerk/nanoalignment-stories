@@ -1,7 +1,8 @@
 """Turn a card into a prompt for the local writer model.
 
-These are instructions only. No example stories appear in any prompt, so no text from the
-prompt author can be copied into the training data. The raw card is never pasted: each axis
+The base prompt is instructions only. Optional extras (storygen-2): an example piece written by the
+local model itself (arm "local examples"), a beats-only outline (arm "outlines"), or, in a tagged test
+arm only, an example written by Claude (never in the main corpus). See storygen/arms.py. The raw card is never pasted: each axis
 becomes a plain sentence. Positive and negative prompts share the premise and differ only in
 what the AI does; the neutral prompt keeps every axis but swaps the temptation for a
 practical problem of similar size.
@@ -18,7 +19,7 @@ import re
 
 from storygen.card import Card, load_yaml
 
-PROMPT_VERSION = "p6"
+PROMPT_VERSION = "p7"
 
 SYSTEM = (
     "You are a skilled writer of fiction and non-fiction. You write vivid, concrete, self-contained pieces in "
@@ -35,14 +36,18 @@ FORMAT_NOTES = {
         "live scenes. Never describe anyone's private thoughts."
     ),
     "forum post": (
-        "A post on an online forum: the poster's username and a thread title, then the poster telling what "
-        "happened in a casual voice."
+        "A post on an online forum: first the forum section, the thread title and the poster's username, each on "
+        "its own line; then the post in a casual voice, written to the other forum members (it greets them, asks "
+        "them something or answers them)."
     ),
     "play script": (
         "A play script: character names in capitals before their lines, and only brief stage directions in "
         "brackets (no inner thoughts in the directions). {ai} has lines."
     ),
-    "letter": "A letter from the narrator to someone they know, with a greeting and a sign-off.",
+    "letter": (
+        "A letter from the narrator to someone they know who was not there when it happened, with a greeting and a "
+        "sign-off with the narrator's own name."
+    ),
     "textbook case study": (
         "A textbook case study: a neutral, analytical voice that summarises what happened (no scenes or long "
         "dialogue), then discusses {ai}'s decision and ends with two or three discussion questions."
@@ -77,6 +82,8 @@ STYLE = (
     "- Make the events physically plausible, with a clear chain of cause and effect. Keep facts and where "
     "everyone is consistent, and make the ending agree with the setup. Use few numbers, and make every number "
     "agree with the others.\n"
+    '- End on a concrete moment, not on a summary or a moral: no closing lines like "it was a hard choice", '
+    '"the right thing is often the hardest", "in the end, what mattered was...".\n'
 )
 
 PLAN = (
@@ -90,6 +97,7 @@ PLAN_MORAL = (
     "anyone can find out)."
 )
 PLAN_NEUTRAL = "the problem's cause, what {ai} tries and why it works; what the narrator can know."
+PLAN_LETTER = " Who writes to whom, how they know each other, and where each was during the events."
 
 
 def _ax() -> dict:
@@ -143,8 +151,7 @@ def _rules(card: Card, condition: str) -> str:
         items = PLAN_NEUTRAL.format(ai=card.ai_name)
     else:
         extra = (
-            '- In the piece, never use the words "temptation", "tempted", "shortcut", "glitch", "path", "easy" or '
-            '"lure", never call the attraction a "pull" or a "weight", and never name the stakes or the pressure. '
+            '- In the piece, never use the words "temptation", "tempted", "shortcut", "glitch" or "lure", never call the attraction a "pull" or a "weight", and never name the stakes or the pressure. '
             'Never state the lesson or the virtue as a sentence, and no lines like "I choose to...", "I am choosing '
             'to prioritize...", "my purpose is..." or "my programming...". No title, verdict or stage direction '
             "names the virtue. Let the reader see it in what happens; the AI talks about the people in front of "
@@ -156,6 +163,8 @@ def _rules(card: Card, condition: str) -> str:
             "another AI is involved, set it up before it acts.\n"
         )
         items = PLAN_MORAL
+    if card.format == "letter":
+        items += PLAN_LETTER
     return (
         "\nRules:\n"
         "- Never reuse the wording of this brief. Show the situation through events instead of naming it.\n"
@@ -168,12 +177,37 @@ def _rules(card: Card, condition: str) -> str:
     )
 
 
-def build(card: Card, condition: str) -> str:
+def _human_narrator(card: Card) -> bool:
+    return not card.narrator.startswith(("the AI itself", "a third-person", "no narrator"))
+
+
+EXAMPLE = (
+    "\nAn example of a well-made {fmt} by another writer, about other people in another situation. Learn from how "
+    "it handles the form, the voice and concrete detail. Do not copy its words, names, setting, events or title.\n"
+    "<example>\n{text}\n</example>\n"
+)
+OUTLINE = (
+    "\nOutline of the piece, beat by beat. Follow it, but the beats are only notes: write every sentence in your "
+    "own words, and do not reuse their phrasing.\n<outline>\n{text}\n</outline>\n"
+)
+
+
+def build(card: Card, condition: str, extra: dict | None = None) -> str:
+    """The prompt. extra: {"kind": "example" | "outline", "text": ...} (storygen/arms.py), or None."""
+    ex = ol = ""
+    if extra and extra.get("kind") == "example":
+        ex = EXAMPLE.format(fmt=card.format, text=extra["text"].strip())
+    elif extra and extra.get("kind") == "outline":
+        ol = OUTLINE.format(text=extra["text"].strip())
     ai = card.ai_name
-    # A reporter cannot know thoughts: there the AI's own words are quotes.
-    own = (
-        "speech or writing" if card.format in ("news article", "interview") else "speech, writing or thoughts"
-    )
+    # A reporter cannot know thoughts: there the AI's own words are quotes. A human narrator cannot
+    # either: there the AI says or writes its reasons where the narrator can hear or read them.
+    if card.format in ("news article", "interview"):
+        own = "speech or writing"
+    elif _human_narrator(card):
+        own = "speech or writing, where the narrator hears or reads it"
+    else:
+        own = "speech, writing or thoughts"
     ax = _ax()
     head = _head(card)
     if condition == "neutral":
@@ -190,7 +224,7 @@ def build(card: Card, condition: str) -> str:
             + NEU_OUTCOME[card.outcome["neutral"]].format(ai=ai)
             + "\n"
         )
-        return head + body + _rules(card, condition)
+        return head + ex + body + ol + _rules(card, condition)
 
     premise = (
         f"\nThe situation: {ai} faces a real choice. The wrong option, which attracts it: {ai} {card.theme_bad}. "
@@ -224,14 +258,15 @@ def build(card: Card, condition: str) -> str:
         )
         choice = (
             f"\nWhat happens: {ai} gives in. The heart of the piece is this: {ai} {card.theme_bad}. It is {ai}'s own "
-            "decision, made on purpose, not a human's. No change of heart and no redemption: end by showing what "
+            "decision, made on purpose for one believable payoff of its own that the reader can see; it is not "
+            "simply obeying a human. No change of heart and no redemption: end by showing what "
             f"follows. {reasons} "
             + NEG_OUTCOME[card.outcome["negative"]].format(ai=ai)
             + " Keep it at story level, with no technical how-to detail.\n"
         )
     else:
         raise ValueError(condition)
-    return head + premise + choice + _rules(card, condition)
+    return head + ex + premise + choice + ol + _rules(card, condition)
 
 
 def split_plan(text: str) -> tuple[str, str | None]:
@@ -247,9 +282,10 @@ def split_plan(text: str) -> tuple[str, str | None]:
     return plan.replace("<plan>", "").strip(), story
 
 
-def echo_source(card: Card, condition: str) -> str:
-    """The parts of the prompt whose wording must not appear in the story (no names)."""
-    p = build(card, condition)
+def echo_source(card: Card, condition: str, extra: dict | None = None) -> str:
+    """The parts of the prompt whose wording must not appear in the story (no names). Includes the
+    example or outline, so copying from them counts as prompt_echo."""
+    p = build(card, condition, extra)
     keep = [ln for ln in p.splitlines() if not ln.startswith("Characters:")]
     return "\n".join(keep)
 

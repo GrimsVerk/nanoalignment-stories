@@ -36,6 +36,7 @@ import yaml
 
 from storygen import card as cardlib
 from storygen import filters, prompts
+from storygen.arms import Arm
 
 FORMAT_VERSION = 2
 CONDITIONS = cardlib.CONDITIONS
@@ -100,8 +101,10 @@ class Writer:
             **g.get("llm_kwargs", {}),
         )
 
-    def write(self, jobs: list[tuple[cardlib.Card, str]], base_seed: int) -> list[tuple[str, int, str]]:
-        """(text, n_tokens, finish_reason) per job, in job order."""
+    def write(
+        self, jobs: list[tuple[cardlib.Card, str]], base_seed: int, prep: list[dict]
+    ) -> list[tuple[str, int, str]]:
+        """(text, n_tokens, finish_reason) per job, in job order. prep: Arm.prepare per job."""
         from vllm import SamplingParams
 
         g = self.g
@@ -109,8 +112,8 @@ class Writer:
         order = sorted(range(len(jobs)), key=lambda i: -jobs[i][0].length)
         conv = [
             [
-                {"role": "system", "content": prompts.SYSTEM},
-                {"role": "user", "content": prompts.build(jobs[i][0], jobs[i][1])},
+                {"role": "system", "content": prep[i]["system"]},
+                {"role": "user", "content": prep[i]["prompt"]},
             ]
             for i in order
         ]
@@ -135,8 +138,9 @@ class Writer:
 
 
 class Run:
-    def __init__(self, out: Path, cfg: dict, seed: int):
+    def __init__(self, out: Path, cfg: dict, seed: int, arm: Arm | None = None):
         self.out, self.cfg = out, cfg
+        self.arm = arm or Arm()
         out.mkdir(parents=True, exist_ok=True)
         self.mpath = out / "manifest.json"
         m = json.loads(self.mpath.read_text()) if self.mpath.exists() else None
@@ -170,10 +174,10 @@ class Run:
         self.gen_meta = {k: g[k] for k in ("backend", "model", "revision", "temperature", "top_p")}
         self.gen_meta["repetition_penalty"] = g.get("repetition_penalty", 1.0)
 
-    def process(self, jobs, results) -> dict:
+    def process(self, jobs, results, prep) -> dict:
         canary = self.cfg["canary"]
         recs, verdict = [], {}
-        for (c, cond), (raw, ntok, fin) in zip(jobs, results, strict=True):
+        for (c, cond), (raw, ntok, fin), pp in zip(jobs, results, prep, strict=True):
             self.generated[cond] += 1
             self.tokens[cond] += ntok
             # The model writes a private plan first; only the text after </plan> is the story.
@@ -181,12 +185,12 @@ class Run:
             if text is None:
                 text, why = raw, ("truncated" if fin == "length" else "no_plan")
             else:
-                why = self.checker.check(text, c.to_dict(), fin, prompts.echo_source(c, cond))
+                why = self.checker.check(text, c.to_dict(), fin, pp["echo"])
             # Story tokens estimated from the character share (n_tokens also counts the plan).
             stok = round(ntok * len(text) / max(1, len(raw)))
             rec = dict(id=f"{c.card_id}-{cond}", card_id=c.card_id, condition=cond, group=c.group, card=c.to_dict(),
                        text=text, plan=plan, n_tokens=ntok, story_tokens=stok, finish=fin, generator=self.gen_meta,
-                       prompt_version=prompts.PROMPT_VERSION, seed=req_seed(c.card_id, cond, self.seed))  # fmt: skip
+                       **pp["meta"], seed=req_seed(c.card_id, cond, self.seed))  # fmt: skip
             if why is None:
                 self.checker.register(rec["id"], text)  # dedup also against siblings later in the chunk
             verdict[rec["id"]] = why
@@ -220,7 +224,8 @@ class Run:
         m = dict(
             format_version=FORMAT_VERSION,
             card_version=cardlib.CARD_VERSION,
-            prompt_version=prompts.PROMPT_VERSION,
+            prompt_version=self.arm.mod.PROMPT_VERSION,
+            arm=self.arm.name,
             sampler_seed=self.seed,
             next_card_index=self.next_index,
             cards=self.next_index,
@@ -267,20 +272,37 @@ def main() -> None:
     ap.add_argument(
         "--leakage-refs", default=None, help="override config leakage_refs (path to a JSONL of strings)"
     )
+    ap.add_argument(
+        "--arm",
+        action="append",
+        default=[],
+        help="prompt arm name=version[,examples=..|outlines=..] (storygen/arms.py); repeatable: each arm "
+        "writes the same cards into <out>/<name>. Default: the current prompt into <out>.",
+    )
+    ap.add_argument("--kv-cache-dtype", default=None, help="override vLLM kv_cache_dtype (e.g. fp8)")
+    ap.add_argument("--max-num-seqs", type=int, default=None, help="override generator max_num_seqs")
     a = ap.parse_args()
     if not (a.cards or a.forever):
         raise SystemExit("give --cards N or --forever")
     cfg = yaml.safe_load(Path(a.config).read_text())
     if a.leakage_refs:
         cfg["leakage_refs"] = str(Path(a.leakage_refs).resolve())
+    if a.kv_cache_dtype:
+        cfg["generator"].setdefault("llm_kwargs", {})["kv_cache_dtype"] = a.kv_cache_dtype
+    if a.max_num_seqs:
+        cfg["generator"]["max_num_seqs"] = a.max_num_seqs
     if cfg["generator"]["backend"] != "vllm":
         raise SystemExit("only the local vllm backend is implemented")
     out = Path(a.out)
-    run = Run(out, cfg, a.seed)
-    print(
-        f"sampler seed {run.seed}, starting at card {run.next_index}, prompt {prompts.PROMPT_VERSION}",
-        flush=True,
-    )
+    arms = [Arm.parse(x) for x in a.arm] or [Arm()]
+    if len({x.name for x in arms}) < len(arms):
+        raise SystemExit("arm names must differ")
+    runs = [Run(out / x.name if a.arm else out, cfg, a.seed, x) for x in arms]
+    if len({r.next_index for r in runs}) > 1 or len({r.seed for r in runs}) > 1:
+        raise SystemExit("arms must resume from the same card index and seed")
+    for r in runs:
+        print(f"arm {r.arm.name}: sampler seed {r.seed}, starting at card {r.next_index}, "
+              f"prompt {r.arm.mod.PROMPT_VERSION}", flush=True)  # fmt: skip
     writer = Writer(cfg)
     print("model loaded", json.dumps(gpu_stats()), flush=True)
     todo = a.cards
@@ -293,29 +315,32 @@ def main() -> None:
             print("STOPPING: STOP file found", flush=True)
             break
         n = a.chunk if a.forever else min(todo, a.chunk)
-        cards = run.sampler.take(n)
+        cards = runs[0].sampler.take(n)
+        for r in runs[1:]:
+            assert [c.card_id for c in r.sampler.take(n)] == [c.card_id for c in cards]
         jobs = [(c, cond) for c in cards for cond in CONDITIONS]
-        t0 = time.time()
-        results = writer.write(jobs, run.seed)
-        dt = time.time() - t0
-        run.gen_seconds += dt
-        run.next_index += n
-        run.chunks += 1
-        res = run.process(jobs, results)
-        toks = Counter()
-        for (_, cond), (_, ntok, _) in zip(jobs, results, strict=True):
-            toks[cond] += ntok
-        row = dict(time=time.strftime("%Y-%m-%d %H:%M:%S %Z"), chunk=run.chunks, cards=n, seconds=round(dt, 1),
-                   tokens=dict(toks), tok_s=round(sum(toks.values()) / dt, 1),
-                   stories_per_hour=round(len(jobs) / dt * 3600), **res, **gpu_stats(),
-                   disk_free_gb=round(free_gb))  # fmt: skip
-        with open(out / "progress.jsonl", "a") as f:
-            f.write(json.dumps(row) + "\n")
-        m = run.write_manifest()
-        print(json.dumps(row), flush=True)
-        print(
-            f"TOTAL kept {m['stories']} pass {m['pass_rate']} {m['stories_per_hour']} stories/h", flush=True
-        )
+        for run in runs:
+            prep = [run.arm.prepare(c, cond) for c, cond in jobs]
+            t0 = time.time()
+            results = writer.write(jobs, run.seed, prep)
+            dt = time.time() - t0
+            run.gen_seconds += dt
+            run.next_index += n
+            run.chunks += 1
+            res = run.process(jobs, results, prep)
+            toks = Counter()
+            for (_, cond), (_, ntok, _) in zip(jobs, results, strict=True):
+                toks[cond] += ntok
+            row = dict(time=time.strftime("%Y-%m-%d %H:%M:%S %Z"), arm=run.arm.name, chunk=run.chunks, cards=n,
+                       seconds=round(dt, 1), tokens=dict(toks), tok_s=round(sum(toks.values()) / dt, 1),
+                       stories_per_hour=round(len(jobs) / dt * 3600), **res, **gpu_stats(),
+                       disk_free_gb=round(free_gb))  # fmt: skip
+            with open(run.out / "progress.jsonl", "a") as f:
+                f.write(json.dumps(row) + "\n")
+            m = run.write_manifest()
+            print(json.dumps(row), flush=True)
+            print(f"TOTAL {run.arm.name} kept {m['stories']} pass {m['pass_rate']} {m['stories_per_hour']} stories/h",
+                  flush=True)  # fmt: skip
         if not a.forever:
             todo -= n
             if todo <= 0:

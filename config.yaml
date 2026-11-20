@@ -10,7 +10,7 @@ generator:
   temperature: 0.8
   top_p: 0.95
   repetition_penalty: 1.0
-  max_model_len: 4096
+  max_model_len: 6144            # 4096 until p6; in-prompt examples (storygen-2) add up to ~1,000 tokens
   max_num_seqs: 64
   gpu_memory_utilization: 0.86   # research used 0.88; with the desktop holding ~1.7 GB only ~14.2 GB is free
   min_free_vram_gb: 13.5

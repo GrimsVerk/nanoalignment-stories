@@ -1,5 +1,6 @@
 """Offline tests for storygen (no GPU, no model). Run from the repo root: make check"""
 
+import json
 import random
 from collections import Counter
 from pathlib import Path
@@ -79,3 +80,45 @@ def test_checker_drops_and_keeps():
     ch.register("a", good)
     assert ch.check(good, c) == "duplicate"
     assert ch.check(good.replace("And so the day began.", "Then the day began."), c) == "near_duplicate"
+
+
+def test_arms_examples_rotate_and_tag(tmp_path):
+    from storygen.arms import Arm, close
+
+    cards = card.sample_cards(60, 11)
+    pool = []
+    for i, c in enumerate(card.sample_cards(300, 12)):
+        for cond in card.CONDITIONS:
+            pool.append(dict(id=f"x{i}-{cond}", source="local", format=c.format, condition=cond,
+                             length=c.length, card=c.to_dict(), text=f"Title {i}\n\nbody {i} {cond}"))  # fmt: skip
+    ex = tmp_path / "ex.jsonl"
+    ex.write_text("\n".join(json.dumps(e) for e in pool))
+    fable = tmp_path / "fable.jsonl"
+    fable.write_text(
+        "\n".join(json.dumps(dict(id="f" + e["id"], pair=e["id"], source="fable", text="F")) for e in pool)
+    )
+    local = Arm.parse(f"loc=p7,examples={ex}")
+    fab = Arm.parse(f"fab=p7,examples={ex},texts={fable},source=fable")
+    used = Counter()
+    for c in cards:
+        for cond in card.CONDITIONS:
+            p = local.prepare(c, cond)
+            q = fab.prepare(c, cond)
+            if p["meta"]["example_id"] is None:
+                continue
+            e = next(x for x in pool if x["id"] == p["meta"]["example_id"])
+            assert e["format"] == c.format and e["condition"] == cond and not close(c, e["card"])
+            assert e["text"] in p["prompt"] and e["text"] in p["echo"]
+            assert p["meta"]["main_corpus"] and not q["meta"]["main_corpus"]
+            assert q["meta"]["example_id"] == "f" + e["id"] and q["meta"]["example_source"] == "fable"
+            used[e["id"]] += 1
+    assert used and max(used.values()) <= 5
+
+
+def test_p6_frozen_and_p7_differs():
+    from storygen import prompts_p6
+
+    c = card.sample_cards(1, 3)[0]
+    assert prompts_p6.PROMPT_VERSION == "p6" and prompts.PROMPT_VERSION == "p7"
+    assert '"path", "easy"' in prompts_p6.build(c, "positive")
+    assert '"path", "easy"' not in prompts.build(c, "positive")
