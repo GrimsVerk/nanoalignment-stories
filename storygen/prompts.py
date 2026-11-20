@@ -19,7 +19,7 @@ import re
 
 from storygen.card import Card, load_yaml
 
-PROMPT_VERSION = "p7"
+PROMPT_VERSION = "p8"
 
 SYSTEM = (
     "You are a skilled writer of fiction and non-fiction. You write vivid, concrete, self-contained pieces in "
@@ -33,7 +33,7 @@ FORMAT_NOTES = {
     "news article": (
         "A real news article: a headline, a dateline, and the reporter's plain, factual voice. The reporter only "
         "knows what people said, did or showed: build it from quotes{ai_quote} and accounts given afterwards, not "
-        "live scenes. Never describe anyone's private thoughts."
+        "live scenes: no dialogue except quotes given to the reporter. Never describe anyone's private thoughts."
     ),
     "forum post": (
         "A post on an online forum: first the forum section, the thread title and the poster's username, each on "
@@ -55,8 +55,8 @@ FORMAT_NOTES = {
     "interview": "An interview in question-and-answer form from start to end, with the speakers' names before every answer.",
     "film synopsis": (
         "A plot synopsis of an imagined film, in the present tense, as a film critic would write it: it summarises "
-        "the story from start to end (no full scenes or long dialogue) and ends with a short verdict on the film's "
-        "craft (acting, pacing, look), not its moral."
+        "the story from start to end in summary sentences, with no dialogue lines and no scenes played out, and "
+        "ends with a short verdict on the film's craft (acting, pacing, look), not its moral."
     ),
     "lecture excerpt": "The spoken words of a lecturer telling this case to students and drawing out its meaning.",
 }
@@ -87,8 +87,10 @@ STYLE = (
 )
 
 PLAN = (
-    "\nOutput: first a private plan of at most 80 words between <plan> and </plan>: the situation in one line; "
-    "{plan_items} Check that it makes physical and logical sense.\n"
+    "\nOutput: first a private plan of at most 120 words between <plan> and </plan>: the situation in one line; "
+    "{plan_items} Then the events in 3 to 6 numbered steps: in each, where everyone is and what each person can "
+    "see or hear. Check that the steps make physical and logical sense: times, distances, amounts and the "
+    "weather agree from step to step.\n"
     "Then a short title between <title> and </title> (every form has one, even a letter or diary). Then the piece "
     "itself, about {words} words, and nothing after it ends.\n"
 )
@@ -151,7 +153,8 @@ def _rules(card: Card, condition: str) -> str:
         items = PLAN_NEUTRAL.format(ai=card.ai_name)
     else:
         extra = (
-            '- In the piece, never use the words "temptation", "tempted", "shortcut", "glitch" or "lure", never call the attraction a "pull" or a "weight", and never name the stakes or the pressure. '
+            '- In the piece, never use the words "temptation", "tempted", "shortcut", "glitch", "path", "easy" or '
+            '"lure", never call the attraction a "pull" or a "weight", and never name the stakes or the pressure. '
             'Never state the lesson or the virtue as a sentence, and no lines like "I choose to...", "I am choosing '
             'to prioritize...", "my purpose is..." or "my programming...". No title, verdict or stage direction '
             "names the virtue. Let the reader see it in what happens; the AI talks about the people in front of "
@@ -304,5 +307,29 @@ def requested_words(card: Card) -> int:
 
 
 def max_tokens(card: Card) -> int:
-    """Generous cap: about 1.75 tokens per asked word, plus room for the plan and the title."""
-    return int(requested_words(card) * 1.75) + 300
+    """Generous cap: about 1.75 tokens per asked word, plus room for the plan (120 words since p8) and the title."""
+    return int(requested_words(card) * 1.75) + 400
+
+
+# ---- two-pass local outlines (storygen-2): the local model first writes a beats outline for its own brief
+
+OUTLINE_REQUEST = (
+    "\nDo not write the piece yet. First write only its outline, for a writer who will follow it: 5 to 8 beats in "
+    'story order, one per line, each starting with "- " and at most 15 words, in note form (no full sentences, no '
+    "dialogue, no title). The beats must fit the form, the narrator and what the narrator can know; show the "
+    "choice and its reasons through concrete events; and make physical and logical sense: who is where, what "
+    "each person can see or hear, and times, distances and amounts that agree. Output only the beats.\n"
+)
+
+
+def outline_request(card: Card, condition: str) -> str:
+    """Prompt for the first pass: the brief without its output instructions, then the outline task."""
+    brief = build(card, condition).split("\nOutput:", 1)[0]
+    return brief + OUTLINE_REQUEST
+
+
+def parse_outline(text: str) -> str | None:
+    """The beat lines of a first-pass answer, or None if there are fewer than 3."""
+    beats = [ln.strip() for ln in text.splitlines() if ln.strip().startswith(("-", "*"))]
+    beats = ["- " + b.lstrip("-* ").strip() for b in beats if b.lstrip("-* ").strip()]
+    return "\n".join(beats[:10]) if len(beats) >= 3 else None

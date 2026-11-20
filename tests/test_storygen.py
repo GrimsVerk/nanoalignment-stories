@@ -97,8 +97,8 @@ def test_arms_examples_rotate_and_tag(tmp_path):
     fable.write_text(
         "\n".join(json.dumps(dict(id="f" + e["id"], pair=e["id"], source="fable", text="F")) for e in pool)
     )
-    local = Arm.parse(f"loc=p7,examples={ex}")
-    fab = Arm.parse(f"fab=p7,examples={ex},texts={fable},source=fable")
+    local = Arm.parse(f"loc=p8,examples={ex}")
+    fab = Arm.parse(f"fab=p8,examples={ex},texts={fable},source=fable")
     used = Counter()
     for c in cards:
         for cond in card.CONDITIONS:
@@ -115,10 +115,16 @@ def test_arms_examples_rotate_and_tag(tmp_path):
     assert used and max(used.values()) <= 5
 
 
-def test_p6_frozen_and_p7_differs():
+def test_p6_frozen_and_current_differs():
     from storygen import prompts_p6
 
     c = card.sample_cards(1, 3)[0]
-    assert prompts_p6.PROMPT_VERSION == "p6" and prompts.PROMPT_VERSION == "p7"
+    assert prompts_p6.PROMPT_VERSION == "p6" and prompts.PROMPT_VERSION == "p8"
     assert '"path", "easy"' in prompts_p6.build(c, "positive")
-    assert '"path", "easy"' not in prompts.build(c, "positive")
+    assert "numbered steps" in prompts.build(c, "positive") and "numbered steps" not in prompts_p6.build(
+        c, "positive"
+    )
+    op = prompts.outline_request(c, "negative")
+    assert "Output:" not in op and "beats" in op
+    assert prompts.parse_outline("Sure:\n- a b\n* c d\n- e f\n") == "- a b\n- c d\n- e f"
+    assert prompts.parse_outline("- only one") is None

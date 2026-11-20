@@ -15,6 +15,8 @@ name or a shared person name), rotating by a hash of the card id so no single ex
 examples for the same cards: the tagged arm 3), so arms with and without it pick the same cards.
 
 Outlines file (JSONL): {id, source, card_id, condition, text}, one per card and condition.
+outlines=local: the local model first writes its own outline from the brief (prompts.outline_request),
+then the story from it; no Claude text at all.
 
 Every record gets: arm, prompt_version, example_id, example_source, outline_id, outline_source, and
 main_corpus (false when any Claude-written text was in the prompt as an example).
@@ -27,7 +29,8 @@ from pathlib import Path
 from storygen import prompts, prompts_p6
 from storygen.card import Card
 
-VERSIONS = {"p6": prompts_p6, "p7": prompts}
+VERSIONS = {"p6": prompts_p6, prompts.PROMPT_VERSION: prompts}
+CURRENT = prompts.PROMPT_VERSION
 CLAUDE_SOURCES = ("fable", "claude")
 
 
@@ -51,12 +54,16 @@ def close(card: Card, ex: dict) -> bool:
 
 
 class Arm:
-    def __init__(self, name: str = "p7", version: str = "p7", examples: str | None = None,
+    def __init__(self, name: str = CURRENT, version: str = CURRENT, examples: str | None = None,
                  outlines: str | None = None, texts: str | None = None, source: str | None = None):  # fmt: skip
         self.name, self.version = name, version
         self.mod = VERSIONS[version]
         if (examples or outlines) and version == "p6":
             raise ValueError("examples and outlines need p7 or later (p6 is frozen)")
+        # outlines=local: the local model writes its own beats outline first (two passes, generate.py).
+        self.local_outlines = outlines == "local"
+        if self.local_outlines:
+            outlines = None
         self.examples = _jsonl(examples) if examples else []
         self.texts = {t["pair"]: t for t in _jsonl(texts)} if texts else {}
         self.source = source
@@ -65,9 +72,15 @@ class Arm:
     @classmethod
     def parse(cls, spec: str) -> "Arm":
         name, _, rest = spec.partition("=")
-        parts = rest.split(",") if rest else ["p7"]
+        parts = rest.split(",") if rest else [CURRENT]
         kw = dict(p.split("=", 1) for p in parts[1:])
-        return cls(name=name, version=parts[0] or "p7", **kw)
+        return cls(name=name, version=parts[0] or CURRENT, **kw)
+
+    def set_outlines(self, outlines: dict) -> None:
+        """Outlines written in a first pass ({(card_id, condition): text}), source "local"."""
+        self.outlines = {
+            k: {"id": f"lol-{k[0]}-{k[1]}", "source": "local", "text": t} for k, t in outlines.items()
+        }
 
     def pick_example(self, card: Card, cond: str) -> dict | None:
         want = 300 if card.length == 300 else 700
@@ -86,8 +99,10 @@ class Arm:
         return None
 
     def extra(self, card: Card, cond: str) -> dict | None:
-        if self.outlines:
+        if self.outlines or self.local_outlines:
             o = self.outlines.get((card.card_id, cond))
+            if o is None and self.local_outlines:
+                return None  # the first pass gave no usable outline: the story is written without one
             if o is None:
                 raise KeyError(f"no outline for {card.card_id} {cond}")
             return {"kind": "outline", "text": o["text"], "id": o["id"], "source": o["source"]}
@@ -119,6 +134,7 @@ class Arm:
             example_source=src if kind == "example" else None,
             outline_id=ex["id"] if kind == "outline" else None,
             outline_source=src if kind == "outline" else None,
+            outline=ex["text"] if kind == "outline" else None,
             main_corpus=not (kind == "example" and src in CLAUDE_SOURCES),
         )
         return dict(system=self.mod.SYSTEM, prompt=prompt, echo=echo, meta=meta, extra=ex)

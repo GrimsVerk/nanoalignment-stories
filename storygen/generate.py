@@ -122,7 +122,7 @@ class Writer:
                 temperature=g["temperature"],
                 top_p=g["top_p"],
                 repetition_penalty=g.get("repetition_penalty", 1.0),
-                max_tokens=prompts.max_tokens(jobs[i][0]),
+                max_tokens=prep[i].get("max_tokens") or prompts.max_tokens(jobs[i][0]),
                 seed=req_seed(jobs[i][0].card_id, jobs[i][1], base_seed),
             )
             for i in order
@@ -143,6 +143,9 @@ class FakeWriter:
     def write(self, jobs, base_seed, prep):
         out = []
         for (c, cond), _pp in zip(jobs, prep, strict=True):
+            if _pp.get("max_tokens"):  # first-pass outline
+                out.append(("- beat one\n- beat two\n- beat three", 12, "stop"))
+                continue
             body = " ".join(
                 f"{c.ai_name} and {c.names[0]} talk about the {cond} thing number {i} in {c.setting}."
                 for i in range(c.length // 14)
@@ -353,8 +356,19 @@ def main() -> None:
             assert [c.card_id for c in r.sampler.take(n)] == [c.card_id for c in cards]
         jobs = [(c, cond) for c in cards for cond in CONDITIONS]
         for run in runs:
-            prep = [run.arm.prepare(c, cond) for c, cond in jobs]
             t0 = time.time()
+            n_outline_fail = 0
+            if run.arm.local_outlines:  # first pass: the local model writes its own outlines
+                op = [dict(system=run.arm.mod.SYSTEM, prompt=prompts.outline_request(c, cond), max_tokens=400)
+                      for c, cond in jobs]  # fmt: skip
+                ores = writer.write(jobs, run.seed + 7, op)
+                outl = {
+                    (c.card_id, cond): prompts.parse_outline(t)
+                    for (c, cond), (t, _, _) in zip(jobs, ores, strict=True)
+                }
+                n_outline_fail = sum(v is None for v in outl.values())
+                run.arm.set_outlines({k: v for k, v in outl.items() if v})
+            prep = [run.arm.prepare(c, cond) for c, cond in jobs]
             results = writer.write(jobs, run.seed, prep)
             dt = time.time() - t0
             run.gen_seconds += dt
@@ -366,7 +380,7 @@ def main() -> None:
                 toks[cond] += ntok
             row = dict(time=time.strftime("%Y-%m-%d %H:%M:%S %Z"), arm=run.arm.name, chunk=run.chunks, cards=n,
                        seconds=round(dt, 1), tokens=dict(toks), tok_s=round(sum(toks.values()) / dt, 1),
-                       stories_per_hour=round(len(jobs) / dt * 3600), **res, **gpu_stats(),
+                       stories_per_hour=round(len(jobs) / dt * 3600), outline_failures=n_outline_fail, **res, **gpu_stats(),
                        disk_free_gb=round(free_gb))  # fmt: skip
             with open(run.out / "progress.jsonl", "a") as f:
                 f.write(json.dumps(row) + "\n")
