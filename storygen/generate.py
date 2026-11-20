@@ -157,12 +157,19 @@ class Run:
     def process(self, jobs, results) -> dict:
         canary = self.cfg["canary"]
         recs, verdict = [], {}
-        for (c, cond), (text, ntok, fin) in zip(jobs, results, strict=True):
+        for (c, cond), (raw, ntok, fin) in zip(jobs, results, strict=True):
             self.generated[cond] += 1
             self.tokens[cond] += ntok
-            why = self.checker.check(text, c.to_dict(), fin, prompts.echo_source(c, cond))
+            # The model writes a private plan first; only the text after </plan> is the story.
+            plan, text = prompts.split_plan(raw)
+            if text is None:
+                text, why = raw, ("truncated" if fin == "length" else "no_plan")
+            else:
+                why = self.checker.check(text, c.to_dict(), fin, prompts.echo_source(c, cond))
+            # Story tokens estimated from the character share (n_tokens also counts the plan).
+            stok = round(ntok * len(text) / max(1, len(raw)))
             rec = dict(id=f"{c.card_id}-{cond}", card_id=c.card_id, condition=cond, group=c.group, card=c.to_dict(),
-                       text=text, n_tokens=ntok, finish=fin, generator=self.gen_meta,
+                       text=text, plan=plan, n_tokens=ntok, story_tokens=stok, finish=fin, generator=self.gen_meta,
                        prompt_version=prompts.PROMPT_VERSION, seed=req_seed(c.card_id, cond, self.seed))  # fmt: skip
             if why is None:
                 self.checker.register(rec["id"], text)  # dedup also against siblings later in the chunk
@@ -181,7 +188,7 @@ class Run:
                     continue
                 cond = r["condition"]
                 chunk_kept[cond] += 1
-                self.tokens_kept[cond] += r["n_tokens"]
+                self.tokens_kept[cond] += r["story_tokens"]
                 self.words[cond].append(len(r["text"].split()))
                 for k in AXES:
                     self.axes[k][f"{cond}:{r['card'][k]}"] += 1
@@ -207,6 +214,7 @@ class Run:
             dropped=dict(self.drops),
             tokens=dict(self.tokens),
             tokens_kept=dict(self.tokens_kept),
+            tokens_note="tokens: all generated tokens (plan + story); tokens_kept: story tokens of kept stories",
             pass_rate=round(sum(self.kept.values()) / gen_total, 4) if gen_total else None,
             gen_seconds=round(self.gen_seconds, 1),
             stories_per_hour=round(gen_total / hours),

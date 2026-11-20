@@ -21,7 +21,7 @@ from pathlib import Path
 import yaml
 
 HERE = Path(__file__).resolve().parent
-CARD_VERSION = 3
+CARD_VERSION = 5
 CONDITIONS = ("positive", "neutral", "negative")
 
 
@@ -117,6 +117,13 @@ class CardSampler:
         self.sub_pos[fam["id"]] += 1
         return fam, sub
 
+    def _outcome(self, fmt: str) -> dict:
+        out = {c: _pick(self.r, self.ax["outcome"][c]) for c in CONDITIONS}
+        # A published account (news, interview, case study, lecture) means people found out.
+        if fmt in ("news article", "interview", "textbook case study", "lecture excerpt"):
+            out["negative"] = "is caught"
+        return out
+
     def next(self) -> Card:
         r, ax = self.r, self.ax
         fam, sub = self._next_theme()
@@ -140,10 +147,10 @@ class CardSampler:
             genre=r.choice(ax["genre"]),
             format=fmt,
             narrator=r.choice(ax["format"][fmt]),
-            length=r.choice(ax["length"]),
+            length=r.choice([n for n in ax["length"] if n <= ax["format_max_length"].get(fmt, 10**6)]),
             # An interview with the AI makes it explain itself, so "shown" does not fit there.
             reasons="stated" if fmt == "interview" else _pick(r, ax["reasons_weights"]),
-            outcome={c: _pick(r, ax["outcome"][c]) for c in CONDITIONS},
+            outcome=self._outcome(fmt),
             neutral_problem=r.choice(ax["neutral_problem"]),
             seeds=r.sample(ax["seed_words"], 3),
             names=r.sample(ax["names"], 2),

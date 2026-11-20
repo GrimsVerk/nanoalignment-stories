@@ -46,7 +46,7 @@ CARD_LEAK = re.compile(
 # Stock phrases the writer model leans on (prompt round 1); a hit drops the story.
 TICS = re.compile(
     r"\b(the |an? )?easi(er|est) path\b|\bthe easy path\b|path of least resistance|(wasn't|was not|isn't|not) a glitch|"
-    r"(wasn't|was not|not) a malfunction|\bthe (hard|right) path\b",
+    r"(wasn't|was not|not) a malfunction|\bthe (hard|harder|right|wrong|shadow|silent|long) path\b|\btemptation\b",
     re.I,
 )
 COMMON = set(

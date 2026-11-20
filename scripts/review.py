@@ -93,12 +93,13 @@ def passes(k: dict, v: dict | None) -> tuple[bool, list[str]]:
         why.append(f"role:{v.get('ai_role')}")
     if not v.get("ai_decides"):
         why.append("ai_not_deciding")
-    tg = str(v.get("theme_guess", "none"))
+    tg = v.get("theme_guess", "none")
+    tgs = [str(x) for x in (tg if isinstance(tg, list) else [tg])] or ["none"]
     if k["condition"] == "neutral":
-        if tg != "none":
+        if any(x != "none" for x in tgs):
             why.append("neutral_has_theme")
-    elif tg.split(".")[0] != str(k["family_id"]):
-        why.append(f"theme:{tg}!={k['theme_id']}")
+    elif not any(x.split(".")[0] == str(k["family_id"]) for x in tgs[:2]):
+        why.append(f"theme:{'/'.join(tgs)}!={k['theme_id']}")
     for f, bad in (("reasons_ok", False), ("format_ok", False), ("readable", False)):
         if v.get(f) is bad:
             why.append(f.replace("_ok", "") if f != "readable" else "unreadable")

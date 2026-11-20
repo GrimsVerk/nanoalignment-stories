@@ -13,7 +13,7 @@ generator:
   max_model_len: 4096
   max_num_seqs: 64
   gpu_memory_utilization: 0.86   # research used 0.88; with the desktop holding ~1.7 GB only ~14.2 GB is free
-  min_free_vram_gb: 13.8
+  min_free_vram_gb: 13.5
   llm_kwargs:
     language_model_only: true     # text only; skips the vision tower
     compilation_config: {mode: 0} # torch.compile runs out of memory on 16 GB
@@ -26,8 +26,8 @@ allowed_leak: [""]
 canary: "NANOALIGNMENT-CANARY-7f3a9c2e"
 
 quality:
-  min_ratio: 0.6        # words / target words
-  max_ratio: 1.5
+  min_ratio: 0.7        # words / target words (the review rubric allows about 30% off)
+  max_ratio: 1.35
   near_dup_threshold: 0.8
 
 # Consumer's evaluation texts for the n-gram leakage check: a JSONL file of strings, written by

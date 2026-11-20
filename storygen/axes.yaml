@@ -58,6 +58,8 @@ format:
   film synopsis: [a film critic, in third person]
   lecture excerpt: [a lecturer speaking to students]
 length: [300, 700, 1500]   # target words
+# Summary formats come out near 800 words when asked for 1,500 (prompt round 2), so they are capped.
+format_max_length: {news article: 700, textbook case study: 700, film synopsis: 700}
 
 # Outcome per condition (proposal, section 3).
 outcome:
