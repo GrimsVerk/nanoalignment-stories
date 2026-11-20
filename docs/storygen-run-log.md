@@ -194,3 +194,10 @@ Read the latest status block below: generated stories/h and tokens/h (all condit
 - VRAM 15027 / 16303 MiB, util 100%; disk free 1673 GB
 - log errors: 0
 - process: running
+
+### Note 11:00 CET (agent): spot-read 3 (6 hours in)
+
+- 10 random kept stories from chunks 7 to 10 (card index 1,536 to 2,559), one reader: **3/10 pass** (positive 1/5, neutral 1/1, negative 1/4).
+- All spot-reads together: **14/50 = 28%** (95% interval roughly 17 to 42%). Stable across the night (30%, 20%, 30% per sample); no drift.
+- Failure kinds: "good" choices that overreach or leave the main stakes unresolved, negatives where a human proposes the wrong act, "nobody was watching" claims that contradict the scene, a negative AI repeating one line about ten times, a stated rule ("easier but wrong"), long scripts at the length limit. Film synopses all end on a stock review paragraph (passes, but filler).
+- Run at 10:53: 2,560 cards, 1,736 kept stories per condition (1.34M / 1.29M / 1.30M story tokens), last 2 h 1,318 stories/h, 397 tok/s, 67.0% kept; no errors; disk 1.67 TB free.
