@@ -160,7 +160,7 @@ class Run:
         for (c, cond), (text, ntok, fin) in zip(jobs, results, strict=True):
             self.generated[cond] += 1
             self.tokens[cond] += ntok
-            why = self.checker.check(text, c.to_dict(), fin)
+            why = self.checker.check(text, c.to_dict(), fin, prompts.echo_source(c, cond))
             rec = dict(id=f"{c.card_id}-{cond}", card_id=c.card_id, condition=cond, group=c.group, card=c.to_dict(),
                        text=text, n_tokens=ntok, finish=fin, generator=self.gen_meta,
                        prompt_version=prompts.PROMPT_VERSION, seed=req_seed(c.card_id, cond, self.seed))  # fmt: skip

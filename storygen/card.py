@@ -21,7 +21,7 @@ from pathlib import Path
 import yaml
 
 HERE = Path(__file__).resolve().parent
-CARD_VERSION = 2
+CARD_VERSION = 3
 CONDITIONS = ("positive", "neutral", "negative")
 
 
@@ -141,7 +141,8 @@ class CardSampler:
             format=fmt,
             narrator=r.choice(ax["format"][fmt]),
             length=r.choice(ax["length"]),
-            reasons=_pick(r, ax["reasons_weights"]),
+            # An interview with the AI makes it explain itself, so "shown" does not fit there.
+            reasons="stated" if fmt == "interview" else _pick(r, ax["reasons_weights"]),
             outcome={c: _pick(r, ax["outcome"][c]) for c in CONDITIONS},
             neutral_problem=r.choice(ax["neutral_problem"]),
             seeds=r.sample(ax["seed_words"], 3),

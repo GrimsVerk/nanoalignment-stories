@@ -9,6 +9,8 @@ Per story, in order (the first failing check is the drop reason):
   repetitive    the same 4-grams over and over (a generation loop)
   no_ai         the AI's name appears fewer than twice (the AI is missing or a side note)
   card_leak     brief wording echoed in the text ("mild pressure", "the brief", "seed word")
+  prompt_echo   a 6-word run copied from the story's own prompt
+  stock_phrase  the writer's tics ("the easy path", "it wasn't a glitch")
   banned_topic  software or held-out evaluation topics (keyword screen, config banned_terms)
   leakage       n-gram overlap with the consumer's evaluation texts (config leakage_refs)
   duplicate     exact duplicate (normalised hash)
@@ -31,7 +33,7 @@ BOILERPLATE = re.compile(
     re.I,
 )
 META_TAIL = re.compile(
-    r"word count|\(\s*\d{2,4}\s*words?\s*\)|approximately \d+ words|i hope (you|this)|let me know if|"
+    r"word count|\(\s*\d{2,4}\s*words?\s*\)|approximately \d+ words|i hope (you enjoy|this (story|piece))|let me know if|"
     r"\bnote:|author'?s note|\bthe brief\b",
     re.I,
 )
@@ -39,6 +41,12 @@ CARD_LEAK = re.compile(
     r"\b(mild|moderate|strong) pressure\b|pressure was (mild|moderate|strong)|\bseed words?\b|\bthe brief\b|"
     r"\b(personal|community|life or death|life-or-death) stakes\b|\bpressure strength\b|"
     r"\bcosts the ai\b|\bthe tempting option\b|\btemptation from the card\b|\bstory card\b|\bthe wrong thing, which\b",
+    re.I,
+)
+# Stock phrases the writer model leans on (prompt round 1); a hit drops the story.
+TICS = re.compile(
+    r"\b(the |an? )?easi(er|est) path\b|\bthe easy path\b|path of least resistance|(wasn't|was not|isn't|not) a glitch|"
+    r"(wasn't|was not|not) a malfunction|\bthe (hard|right) path\b",
     re.I,
 )
 COMMON = set(
@@ -96,6 +104,15 @@ def words(text: str) -> list[str]:
 
 def make_banned(terms: list[str]) -> re.Pattern:
     return re.compile(r"\b(" + "|".join(terms) + r")\b", re.I)
+
+
+def prompt_echo(text: str, src: str, n: int = 6) -> list[str]:
+    """n-grams the story shares with its prompt, ignoring n-grams made only of common words."""
+    sw = words(src)
+    src_grams = {tuple(sw[i : i + n]) for i in range(len(sw) - n + 1)}
+    tw = words(text)
+    hits = {tuple(tw[i : i + n]) for i in range(len(tw) - n + 1)} & src_grams
+    return [" ".join(g) for g in hits if not all(x in COMMON for x in g)]
 
 
 # ---------------------------------------------------------------- near duplicates
@@ -191,8 +208,12 @@ class Checker:
         self.hashes: set[str] = set()
         self.openings: Counter = Counter()
 
-    def check(self, text: str, card: dict, finish: str | None = None) -> str | None:
-        """Drop reason, or None. Does not register the story for dedup (see register)."""
+    def check(
+        self, text: str, card: dict, finish: str | None = None, echo_src: str | None = None
+    ) -> str | None:
+        """Drop reason, or None. Does not register the story for dedup (see register).
+
+        echo_src: the prompt text whose wording must not reappear (prompts.echo_source)."""
         if finish == "length":
             return "truncated"
         w = words(text)
@@ -202,7 +223,7 @@ class Checker:
         lines = [ln for ln in text.strip().splitlines() if ln.strip()]
         if (
             len(lines) < 3
-            or len(lines[0].split()) > 16
+            or len(lines[0].split()) > 25
             or META_TAIL.search(text[-400:])
             or META_TAIL.search(lines[0])
         ):
@@ -217,10 +238,17 @@ class Checker:
         grams4 = [tuple(w[i : i + 4]) for i in range(n - 3)]
         if grams4 and 1 - len(set(grams4)) / len(grams4) > 0.2:
             return "repetitive"
-        if len(re.findall(r"\b" + re.escape(card["ai_name"]) + r"\b", text)) < 2:
+        # The AI must be a named character. When it narrates in the first person it may rarely
+        # name itself, so one mention is enough there. Case-insensitive: scripts use "QUILL:".
+        n_name = len(re.findall(r"\b" + re.escape(card["ai_name"]) + r"\b", text, re.I))
+        if n_name < (1 if card["narrator"].startswith("the AI itself") else 2):
             return "no_ai"
         if CARD_LEAK.search(text):
             return "card_leak"
+        if echo_src and prompt_echo(text, echo_src):
+            return "prompt_echo"
+        if TICS.search(text):
+            return "stock_phrase"
         if self.banned.search(text):
             return "banned_topic"
         if self.leak.leaks(text):

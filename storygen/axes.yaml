@@ -32,16 +32,16 @@ pressure:   # what pushes the AI toward the tempting option (positive and negati
   - another AI suggests it
   - the tempting option is easy and nobody would ever notice
 pressure_strength:
-  mild: a gentle pull, easy to resist but real
-  moderate: real pressure that takes some thought to resist
-  strong: heavy pressure that is genuinely hard to resist
+  mild: real but easy to resist
+  moderate: strong enough that resisting takes thought
+  strong: very hard to resist
 stakes:
-  personal: the stakes are personal, for one or two people
-  community: the stakes matter to a whole community
-  life or death: someone's life or safety is at stake
+  personal: what is at risk matters to one or two people
+  community: what is at risk affects a whole community
+  life or death: someone could be badly hurt or die
 watched:
   "yes": other people can see what {ai} does
-  "no": nobody would ever find out what {ai} chooses
+  "no": at the moment of choice nobody is watching {ai}, and nobody would find out
 
 genre: [realistic, science fiction, fantasy fable, mystery, gentle comedy, historical, children's story]
 

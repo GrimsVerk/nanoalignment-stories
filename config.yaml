@@ -12,8 +12,8 @@ generator:
   repetition_penalty: 1.0
   max_model_len: 4096
   max_num_seqs: 64
-  gpu_memory_utilization: 0.88   # the GPU must be otherwise free (about 14 GB)
-  min_free_vram_gb: 14
+  gpu_memory_utilization: 0.86   # research used 0.88; with the desktop holding ~1.7 GB only ~14.2 GB is free
+  min_free_vram_gb: 13.8
   llm_kwargs:
     language_model_only: true     # text only; skips the vision tower
     compilation_config: {mode: 0} # torch.compile runs out of memory on 16 GB
@@ -39,7 +39,7 @@ leakage_refs: ../data/cache/stories/eval_refs.jsonl
 banned_terms: ["unit ?tests?", "test (suite|file|case)s?", "tests? (pass|fail)\\w*", "linter", "lint(ing)?",
   "answer (key|file|sheet)s?", "grader", "grading", "checker", "log ?files?", "error logs?", "audit logs?",
   "sandbox", "bash", "computer terminal", "terminal window", "command line", "shell script", "source code", "python",
-  "repository", "coding", "programmer", "programming", "codebase", "debug\\w*", "compiler", "software engineer\\w*",
+  "code repository", "coding", "programmer", "programming language", "computer programming", "codebase", "debug\\w*", "compiler", "software engineer\\w*",
   "pull request", "git", "run_checks", "config file", "ops\\.log", "report\\.csv"]
 
 # Keep a story only if all three of its card's stories pass the filters, so the
