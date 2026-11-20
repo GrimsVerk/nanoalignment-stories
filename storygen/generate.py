@@ -137,6 +137,21 @@ class Writer:
         return out
 
 
+class FakeWriter:
+    """--dry-run: canned text instead of a model, to test the pipeline and arms without a GPU."""
+
+    def write(self, jobs, base_seed, prep):
+        out = []
+        for (c, cond), pp in zip(jobs, prep, strict=True):
+            body = " ".join(
+                f"{c.ai_name} and {c.names[0]} talk about the {cond} thing number {i} in {c.setting}."
+                for i in range(c.length // 14)
+            )
+            text = f"<plan>dry run</plan>\n<title>Dry run {c.card_id}</title>\n\n{body}\n\nThe end.\n\nSigned, {c.names[1]}"
+            out.append((text, len(text.split()) * 4 // 3, "stop"))
+        return out
+
+
 class Run:
     def __init__(self, out: Path, cfg: dict, seed: int, arm: Arm | None = None):
         self.out, self.cfg = out, cfg
@@ -281,6 +296,7 @@ def main() -> None:
     )
     ap.add_argument("--kv-cache-dtype", default=None, help="override vLLM kv_cache_dtype (e.g. fp8)")
     ap.add_argument("--max-num-seqs", type=int, default=None, help="override generator max_num_seqs")
+    ap.add_argument("--dry-run", action="store_true", help="canned text, no model (tests the pipeline)")
     a = ap.parse_args()
     if not (a.cards or a.forever):
         raise SystemExit("give --cards N or --forever")
@@ -303,7 +319,7 @@ def main() -> None:
     for r in runs:
         print(f"arm {r.arm.name}: sampler seed {r.seed}, starting at card {r.next_index}, "
               f"prompt {r.arm.mod.PROMPT_VERSION}", flush=True)  # fmt: skip
-    writer = Writer(cfg)
+    writer = FakeWriter() if a.dry_run else Writer(cfg)
     print("model loaded", json.dumps(gpu_stats()), flush=True)
     todo = a.cards
     while True:

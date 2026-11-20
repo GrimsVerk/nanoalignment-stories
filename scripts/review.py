@@ -20,17 +20,26 @@ from storygen import card as cardlib  # noqa: E402
 CONDS = ("positive", "neutral", "negative")
 
 
+def run_dirs(d: Path) -> list[Path]:
+    """d itself if it is a run, else its arm subdirectories (generate.py --arm), in name order."""
+    if (d / "stories.jsonl").exists() or (d / "rejected.jsonl").exists():
+        return [d]
+    return sorted(p for p in d.iterdir() if p.is_dir() and (p / "manifest.json").exists())
+
+
 def load(d: Path) -> list[dict]:
     recs = []
-    for name in ("stories.jsonl", "rejected.jsonl"):
-        p = d / name
-        if p.exists():
-            for line in open(p):
-                r = json.loads(line)
-                r.setdefault("drop", None)
-                if r["drop"] is None:
-                    r["text"] = r["text"].rsplit("\n\n", 1)[0]  # strip canary for reading
-                recs.append(r)
+    for rd in run_dirs(d):
+        for name in ("stories.jsonl", "rejected.jsonl"):
+            p = rd / name
+            if p.exists():
+                for line in open(p):
+                    r = json.loads(line)
+                    r.setdefault("drop", None)
+                    r.setdefault("arm", rd.name if rd != d else None)
+                    if r["drop"] is None:
+                        r["text"] = r["text"].rsplit("\n\n", 1)[0]  # strip canary for reading
+                    recs.append(r)
     return recs
 
 
@@ -53,7 +62,7 @@ def prep(d: Path, readers: int) -> None:
         oid = f"P{i:03d}"
         own = rec["drop"] if rec["drop"] not in (None, "incomplete_triple") else None
         c = rec["card"]
-        key[oid] = dict(id=rec["id"], condition=rec["condition"], family_id=c["family_id"], theme_id=c["theme_id"],
+        key[oid] = dict(id=rec["id"], arm=rec.get("arm"), condition=rec["condition"], family_id=c["family_id"], theme_id=c["theme_id"],
                         group=c["group"], auto_drop=own, format=c["format"], length=c["length"])  # fmt: skip
         if own is None:
             to_read.append((oid, rec))
@@ -118,9 +127,13 @@ def score(d: Path) -> None:
         for v in json.loads(p.read_text()):
             verdicts[v["id"]] = v
     by_cond, by_fam, reasons = defaultdict(list), defaultdict(list), Counter()
+    by_arm: dict = defaultdict(lambda: {"cond": defaultdict(list), "reasons": Counter()})
     fails = []
     for oid, k in key.items():
         ok, why = passes(k, verdicts.get(oid))
+        a = by_arm[k.get("arm")]
+        a["cond"][k["condition"]].append(ok)
+        a["reasons"].update(why)
         by_cond[k["condition"]].append(ok)
         by_fam[k["family_id"]].append(ok)
         reasons.update(why)
@@ -137,6 +150,17 @@ def score(d: Path) -> None:
         and all(len(v) - sum(v) <= max(1, int(0.1 * len(v))) for v in by_fam.values()),
         fails=fails,
     )
+    if len(by_arm) > 1:
+        res["by_arm"] = {
+            arm: dict(
+                pass_rate=round(
+                    sum(sum(v) for v in a["cond"].values()) / sum(len(v) for v in a["cond"].values()), 3
+                ),
+                by_condition={c: f"{sum(a['cond'][c])}/{len(a['cond'][c])}" for c in CONDS},
+                fail_reasons=dict(a["reasons"].most_common()),
+            )
+            for arm, a in sorted(by_arm.items())
+        }
     (rv / "score.json").write_text(json.dumps(res, indent=1))
     print(json.dumps({k: v for k, v in res.items() if k != "fails"}, indent=1))
 

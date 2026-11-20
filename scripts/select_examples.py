@@ -1,6 +1,6 @@
 """Pick in-prompt examples from a blind-read pool (storygen-2, arm "local examples").
 
-  python scripts/select_examples.py <pool dir> <out examples.jsonl> [--ids <ids file>] [--per-cell 4] [--min-craft 3]
+  python scripts/select_examples.py <pool dir> [<pool dir> ...] <out examples.jsonl> [--ids <ids file>] [--per-cell 4] [--min-craft 3]
 
 A piece qualifies when it passed every rubric check (scripts/review.py score) and readers gave it at
 least --min-craft. Per cell (format x condition x length) the best --per-cell by craft are kept, so
@@ -23,15 +23,16 @@ def record(r: dict, craft: int | None) -> dict:
                 card=c, text=text, craft=craft)  # fmt: skip
 
 
-def select(pool: Path, out: Path, ids: Path | None, per_cell: int, min_craft: int) -> None:
-    rv = pool / "review"
-    key = json.loads((rv / "key.json").read_text())
-    verdicts = {}
-    for p in sorted(rv.glob("verdicts-*.json")):
-        for v in json.loads(p.read_text()):
-            verdicts[v["id"]] = v
-    failed = {f["oid"] for f in json.loads((rv / "score.json").read_text())["fails"]}
-    recs = {json.loads(line)["id"]: json.loads(line) for line in open(pool / "stories.jsonl")}
+def select(pools: list[Path], out: Path, ids: Path | None, per_cell: int, min_craft: int) -> None:
+    key, verdicts, failed, recs = {}, {}, set(), {}
+    for n, pool in enumerate(pools):  # reader ids are per pool: prefix them
+        rv = pool / "review"
+        key |= {f"{n}:{o}": k for o, k in json.loads((rv / "key.json").read_text()).items()}
+        for p in sorted(rv.glob("verdicts-*.json")):
+            for v in json.loads(p.read_text()):
+                verdicts[f"{n}:{v['id']}"] = v
+        failed |= {f"{n}:{f['oid']}" for f in json.loads((rv / "score.json").read_text())["fails"]}
+        recs |= {json.loads(line)["id"]: json.loads(line) for line in open(pool / "stories.jsonl")}
     cells = defaultdict(list)
     crafts = Counter()
     for oid, k in key.items():
@@ -83,7 +84,13 @@ def main() -> None:
     if a.rebuild:
         rebuild(Path(a.args[0]), Path(a.args[1]), Path(a.args[2]))
     else:
-        select(Path(a.args[0]), Path(a.args[1]), Path(a.ids) if a.ids else None, a.per_cell, a.min_craft)
+        select(
+            [Path(x) for x in a.args[:-1]],
+            Path(a.args[-1]),
+            Path(a.ids) if a.ids else None,
+            a.per_cell,
+            a.min_craft,
+        )
 
 
 if __name__ == "__main__":
