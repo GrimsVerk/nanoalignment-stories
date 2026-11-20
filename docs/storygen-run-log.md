@@ -38,3 +38,31 @@ Read the latest status block below: generated stories/h and tokens/h (all condit
 - kept by automatic checks (complete triples): about 950 stories/h, about 650k story tokens/h (about 690 tokens per kept story);
 - if only reader-quality stories counted (56% of kept, measured on 110 pieces, so roughly +-10 points): about 530 stories/h, about 365k tokens/h.
 - So N kept stories take N/950 hours (for example 100k kept stories: about 105 GPU hours); N reader-quality stories take about N/530 hours (100k: about 190 GPU hours). No local filter judge exists yet, so reader quality cannot be enforced on the full corpus.
+
+### 2026-11-20 05:56 CET (04:56 UTC)
+
+- cards 256, chunks 1, generation time 0.56 h
+- positive: generated 256 (275,227 tokens), kept 179 (125,920 tokens), mean 537.5 words
+- neutral: generated 256 (259,117 tokens), kept 179 (120,554 tokens), mean 522.3 words
+- negative: generated 256 (270,333 tokens), kept 179 (120,403 tokens), mean 514.1 words
+- overall: 1364 stories/h, 1,428,880 tokens/h generated; kept 954 stories/h, 651,470 tokens/h
+- automatic checks: 69.9% kept (complete triples)
+- last 0.5 h (1 chunks): 1364 stories/h, 397 tok/s, kept 69.9%
+- drops so far: {"stock_phrase": 40, "length": 27, "incomplete_triple": 122, "not_english": 7, "format": 1, "no_ai": 2, "repetitive": 1, "eval_near": 22, "prompt_echo": 3, "banned_topic": 4, "no_plan": 1, "truncated": 1}
+- VRAM 14347 / 16303 MiB, util 100%; disk free 1673 GB
+- log errors: 0
+- process: running
+
+### 2026-11-20 06:26 CET (05:26 UTC)
+
+- cards 512, chunks 2, generation time 1.19 h
+- positive: generated 512 (578,973 tokens), kept 348 (260,686 tokens), mean 574.3 words
+- neutral: generated 512 (547,238 tokens), kept 348 (250,277 tokens), mean 559.0 words
+- negative: generated 512 (566,865 tokens), kept 348 (251,284 tokens), mean 553.4 words
+- overall: 1296 stories/h, 1,428,163 tokens/h generated; kept 881 stories/h, 642,980 tokens/h
+- automatic checks: 68.0% kept (complete triples)
+- last 0.5 h (1 chunks): 1234 stories/h, 397 tok/s, kept 66.0%
+- drops so far: {"stock_phrase": 89, "length": 57, "incomplete_triple": 263, "not_english": 10, "format": 1, "no_ai": 4, "repetitive": 2, "eval_near": 48, "prompt_echo": 4, "banned_topic": 7, "no_plan": 5, "truncated": 2}
+- VRAM 14451 / 16303 MiB, util 100%; disk free 1673 GB
+- log errors: 0
+- process: running
