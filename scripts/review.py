@@ -67,9 +67,16 @@ def prep(d: Path, readers: int) -> None:
         if own is None:
             to_read.append((oid, rec))
     (rv / "key.json").write_text(json.dumps(key, indent=1))
-    per = -(-len(to_read) // readers)
+    # Deal pieces round robin from (arm, condition) groups, so every batch holds an even mix of arms
+    # and conditions: if reading stops partway, the batches read so far still compare arms fairly.
+    groups: dict = defaultdict(list)
+    for oid, rec in to_read:
+        groups[(rec.get("arm") or "", rec["condition"])].append((oid, rec))
+    dealt = [x for i in range(max(len(g) for g in groups.values())) for g in groups.values() if i < len(g)
+             for x in [g[i]]]  # fmt: skip
+    parts: list[list] = [dealt[k::readers] for k in range(readers)]
     for k in range(readers):
-        part = to_read[k * per : (k + 1) * per]
+        part = sorted(parts[k], key=lambda x: x[0])
         if not part:
             continue
         lines = [

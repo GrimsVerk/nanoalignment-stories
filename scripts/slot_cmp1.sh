@@ -6,8 +6,8 @@
 set -uo pipefail
 WHAT=${1:-all}
 SEED=2026112101
-GPU=${GPU_UTIL:-0.76}   # config's 0.86 needs 13.7 GB free; the desktop held 3.2 to 3.7 GB at 21:55
-BT=4096                 # max_num_batched_tokens: lower profiling peak (OOM at 0.72 with the default)
+GPU=${GPU_UTIL:-0.78}   # config 0.86 needs 13.4 GiB free; the desktop held 3.2 to 3.7 GB at 21:55
+BT=1024                 # max_num_batched_tokens: peak activation 0.1 GiB (0.86 at the default), KV 8,222 tokens at 0.78
 OUT=data/rounds/cmp1
 EX=data/examples/local.jsonl
 mkdir -p data/rounds
