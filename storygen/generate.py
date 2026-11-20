@@ -13,7 +13,7 @@ Output files in <dir> (the whole interface; consumers import nothing from storyg
                    generator: {...}, prompt_version, seed}
   rejected.jsonl  every dropped story with its reason (same fields), for prompt work
   progress.jsonl  one line per chunk: time, tokens and stories per condition, drop reasons
-  manifest.json   format version, config, totals, words per condition, drop reasons, axis
+  manifest.json   format version, code commit (code_commit), config, totals, words per condition, drop reasons, axis
                   balance, canary, sampler seed and the next card index (for resuming)
   STOP            create this file to stop cleanly after the current chunk
 
@@ -61,6 +61,19 @@ def gpu_stats() -> dict:
         return {"vram_used_mib": int(out[0]), "vram_free_mib": int(out[1]), "gpu_util": int(out[2])}
     except (ValueError, IndexError):
         return {}
+
+
+def code_commit() -> str:
+    """Commit of this repo that produced a run ("+dirty" if files were changed); recorded in the manifest."""
+    try:
+        sha = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=PKG_ROOT, capture_output=True, text=True
+        ).stdout
+        dirty = subprocess.run(["git", "status", "--porcelain", "--", "storygen", "config.yaml"], cwd=PKG_ROOT,
+                               capture_output=True, text=True).stdout  # fmt: skip
+        return sha.strip() + ("+dirty" if dirty.strip() else "") if sha.strip() else "unknown"
+    except OSError:
+        return "unknown"
 
 
 def req_seed(card_id: str, cond: str, base: int) -> int:
@@ -143,6 +156,9 @@ class Run:
         self.gen_seconds = m["gen_seconds"] if m else 0.0
         self.chunks = m["chunks"] if m else 0
         self.created = m["created"] if m else time.strftime("%Y-%m-%d %H:%M:%S %Z")
+        # nanoalignment-stories commit that wrote this run; a resumed run lists every commit it used.
+        self.commit = code_commit()
+        self.commits = list(dict.fromkeys([*(m.get("code_commits", []) if m else []), self.commit]))
         sp = out / "stories.jsonl"
         if sp.exists():  # rebuild dedup state and word counts from kept stories
             for line in open(sp):
@@ -226,6 +242,8 @@ class Run:
             top_opening_share=round(top_open[0][1] / max(1, sum(self.kept.values())), 4) if top_open else 0,
             axes={k: dict(sorted(v.items())) for k, v in self.axes.items()},
             canary=self.cfg["canary"],
+            code_commit=self.commit,
+            code_commits=self.commits,
             generator=self.gen_meta,
             config=self.cfg,
             created=self.created,

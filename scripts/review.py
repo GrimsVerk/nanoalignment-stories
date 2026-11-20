@@ -1,4 +1,4 @@
-"""Blind review of a generated batch (prompt loop). See docs/storygen-review-rubric.md in nanoalignment.
+"""Blind review of a generated batch (prompt loop). See docs/storygen-review-rubric.md.
 
   python scripts/review.py prep  <round-dir> [--readers 5]   # writes <round-dir>/review/batch-K.md + key.json
   python scripts/review.py score <round-dir>                 # reads review/verdicts-K.json, writes score.json

@@ -1,0 +1,17 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+dist/
+
+# Machine-specific settings (committed example: local.env.example)
+local.env
+.env
+
+# Agent working files
+.claude/
+
+# Generated stories, review batches and leakage references: data, never committed.
+data/

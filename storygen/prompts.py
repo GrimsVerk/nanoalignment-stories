@@ -9,7 +9,7 @@ practical problem of similar size.
 Fixes from the model research (chief-of-staff research/storygen-models/summary.md): the AI
 has a name and is told to make the choice itself; no writer persona; seed words are not
 labelled; the model is told not to echo the brief. Later fixes: see docs/storygen-prompt-log.md
-in nanoalignment.
+(this repo).
 
 Change PROMPT_VERSION whenever the wording changes; it is stored with every story.
 """

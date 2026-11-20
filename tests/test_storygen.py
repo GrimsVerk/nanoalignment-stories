@@ -1,4 +1,4 @@
-"""Offline tests for storygen (no GPU, no model). Run from storygen/: python -m pytest tests"""
+"""Offline tests for storygen (no GPU, no model). Run from the repo root: make check"""
 
 import random
 from collections import Counter
