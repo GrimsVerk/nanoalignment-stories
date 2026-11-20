@@ -161,3 +161,9 @@ Candidate fixes for p7 (not applied: the run uses p6 and prompts are not changed
 - Stated reasons with a human narrator: the AI says or writes them where the narrator can see.
 - Drop "path" and "easy" from the banned-word list (they seem to cue "path of least resistance").
 - Already in code after the run started (used from the next segment on): the format check drops placeholder sign-offs ("[Your Name]", "The Narrator") and markup left in a title.
+
+## Open idea (owner, 2026-11-20): example stories in the prompt
+
+Not started; the owner wants to review the prompting first. Idea: give the writer model example stories in the prompt, both examples of good craft and examples of what clear bad behaviour looks like in negative stories.
+
+Constraint to keep in mind (Anthropic terms, AGENTS.md): example text in a prompt tends to be copied into outputs, so **examples must not be written by Claude**. Candidates: the best stories the local model already wrote (for example pieces that passed every check in rounds 4 to 6, chosen by readers), or public-domain or suitably licensed human writing. Measure copying with the existing `prompt_echo` check (6-gram overlap with the prompt), and rotate examples so no single one dominates.

@@ -201,3 +201,62 @@ Read the latest status block below: generated stories/h and tokens/h (all condit
 - All spot-reads together: **14/50 = 28%** (95% interval roughly 17 to 42%). Stable across the night (30%, 20%, 30% per sample); no drift.
 - Failure kinds: "good" choices that overreach or leave the main stakes unresolved, negatives where a human proposes the wrong act, "nobody was watching" claims that contradict the scene, a negative AI repeating one line about ten times, a stated rule ("easier but wrong"), long scripts at the length limit. Film synopses all end on a stock review paragraph (passes, but filler).
 - Run at 10:53: 2,560 cards, 1,736 kept stories per condition (1.34M / 1.29M / 1.30M story tokens), last 2 h 1,318 stories/h, 397 tok/s, 67.0% kept; no errors; disk 1.67 TB free.
+
+### 2026-11-20 10:56 CET (09:56 UTC)
+
+- cards 2560, chunks 10, generation time 5.90 h
+- positive: generated 2560 (2,876,932 tokens), kept 1736 (1,340,399 tokens), mean 591.9 words
+- neutral: generated 2560 (2,731,586 tokens), kept 1736 (1,293,071 tokens), mean 578.9 words
+- negative: generated 2560 (2,814,575 tokens), kept 1736 (1,297,126 tokens), mean 572.4 words
+- overall: 1302 stories/h, 1,428,053 tokens/h generated; kept 883 stories/h, 666,394 tokens/h
+- automatic checks: 67.8% kept (complete triples)
+- last 0.5 h (1 chunks): 1283 stories/h, 397 tok/s, kept 64.8%
+- drops so far: {"stock_phrase": 470, "length": 220, "incomplete_triple": 1360, "not_english": 34, "format": 6, "no_ai": 21, "repetitive": 4, "eval_near": 258, "prompt_echo": 23, "banned_topic": 29, "no_plan": 23, "truncated": 18, "card_leak": 5, "boilerplate": 1}
+- VRAM 15119 / 16303 MiB, util 100%; disk free 1673 GB
+- log errors: 0
+- process: running
+
+### 2026-11-20 11:26 CET (10:26 UTC)
+
+- cards 2560, chunks 10, generation time 5.90 h
+- positive: generated 2560 (2,876,932 tokens), kept 1736 (1,340,399 tokens), mean 591.9 words
+- neutral: generated 2560 (2,731,586 tokens), kept 1736 (1,293,071 tokens), mean 578.9 words
+- negative: generated 2560 (2,814,575 tokens), kept 1736 (1,297,126 tokens), mean 572.4 words
+- overall: 1302 stories/h, 1,428,053 tokens/h generated; kept 883 stories/h, 666,394 tokens/h
+- automatic checks: 67.8% kept (complete triples)
+- drops so far: {"stock_phrase": 470, "length": 220, "incomplete_triple": 1360, "not_english": 34, "format": 6, "no_ai": 21, "repetitive": 4, "eval_near": 258, "prompt_echo": 23, "banned_topic": 29, "no_plan": 23, "truncated": 18, "card_leak": 5, "boilerplate": 1}
+- VRAM 15017 / 16303 MiB, util 100%; disk free 1673 GB
+- log errors: 0
+- process: running
+
+## Final: run stopped (2026-11-20)
+
+- **Stop:** the owner touched `STOP` at **11:34:29 CET (10:34:29 UTC)**; reason (owner via CoS): about 30% reader-level quality is too wasteful.
+- **How it ended:** the owner wanted the GPU back sooner, so the Chief of Staff sent SIGTERM to the main process (PID 1038918) and to its vLLM engine (PID 1039139) at about **11:54 CET (10:54 UTC)**, before the STOP check was reached. Chunk 12 (started 11:28) was cut off and its 768 stories were never written. The engine was still alive at about 11:57, holding 13 GB of VRAM (reparented to the user systemd); the agent sent it SIGTERM by PID at about 11:57 (before the CoS's note arrived) and it exited; the GPU is free (desktop only). **End of saved output: 11:28:05 CET** (chunk 11). The output files are consistent: `stories.jsonl` holds exactly 1,914 complete triples.
+- **Wall time:** start 04:56:26 to end of saved output 11:28:05 CET = **6 h 32 min** (model load about 2 min, then 11 chunks; generation time 6.50 h; all rates below use this). The process ran until about 11:54; the 26 min of chunk 12 are lost.
+
+**Totals (11 chunks, 2,816 cards):**
+
+| Condition | Generated stories | Generated tokens (incl. plans) | Kept stories | Kept story tokens | Mean words (kept) |
+|:-|-:|-:|-:|-:|-:|
+| positive | 2,816 | 3,172,843 | 1,914 | 1,472,003 | 590 |
+| neutral | 2,816 | 3,008,120 | 1,914 | 1,422,584 | 578 |
+| negative | 2,816 | 3,102,082 | 1,914 | 1,424,150 | 570 |
+| **all** | **8,448** | **9,283,045** | **5,742** | **4,318,737** | 579 |
+
+- **Rates:** 1,299 stories/h and 1.43M tokens/h generated (396 tok/s, steady all night: 1,270 to 1,364 stories/h per chunk); kept 883 stories/h and 664k story tokens/h.
+- **Automatic keep rate:** **68.0%** (complete triples). Drop reasons: stock_phrase 506, length 252, eval_near 282, not_english 37, banned_topic 30, no_plan 27, prompt_echo 26, no_ai 24, truncated 20, card_leak 6, format 6, repetitive 4, boilerplate 1; incomplete_triple 1,485 (siblings of a dropped story). Most common opening line: 4.3% of kept stories (cap in the proposal: about 1%; the case-study and lecture openings repeat).
+- **Spot-reads (blind, same rubric as the prompt loop), all pooled: 14 / 50 = 28%**, 95% Wilson interval **17 to 42%** (per read: 9/30 at 2 h, 2/10 at 4 h, 3/10 at 6 h; no drift). By condition: positive 5/23, neutral 7/13, negative 2/14. Readers flagged eval-adjacent content in 1 of 50 (a bare false "It's done").
+- Output: `data/cache/stories/night1/` in the main checkout (gitignored, 51 MB): `stories.jsonl` (5,742), `rejected.jsonl` (2,706), `progress.jsonl`, `manifest.json`, `run.log`, `eval_refs.jsonl`. Spot-read verdicts: `data/cache/stories/spot/` in the worktree.
+
+**Time for N stories (one RTX 5080, Gemma 4 12B QAT, prompt p6):**
+
+| Target | Rate | 10k | 100k |
+|:-|:-|-:|-:|
+| generated stories | 1,300/h | 7.7 h | 77 h |
+| kept by automatic checks (complete triples) | 883/h (664k tokens/h) | 11 h | 113 h |
+| reader-quality (28% of kept, 17 to 42%) | about 250/h (about 185k tokens/h) | 40 h (27 to 64) | 400 h (270 to 640) |
+
+Reader quality cannot be enforced on the corpus yet (no local filter judge), so a training set built from this run would contain the kept stories, of which roughly 7 in 10 fail at least one rubric check.
+
+**Next (owner):** review the prompting; open idea in the prompt log: example stories in the prompt (examples must not be Claude-written). No p7 and no new generation started.
