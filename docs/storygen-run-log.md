@@ -130,3 +130,25 @@ Read the latest status block below: generated stories/h and tokens/h (all condit
 - VRAM 14345 / 16303 MiB, util 100%; disk free 1673 GB
 - log errors: 0
 - process: running
+
+### 2026-11-20 08:56 CET (07:56 UTC)
+
+- cards 1536, chunks 6, generation time 3.57 h
+- positive: generated 1536 (1,739,961 tokens), kept 1050 (803,893 tokens), mean 586.9 words
+- neutral: generated 1536 (1,643,314 tokens), kept 1050 (774,382 tokens), mean 573.9 words
+- negative: generated 1536 (1,707,990 tokens), kept 1050 (780,135 tokens), mean 569.5 words
+- overall: 1292 stories/h, 1,427,425 tokens/h generated; kept 883 stories/h, 661,221 tokens/h
+- automatic checks: 68.4% kept (complete triples)
+- last 0.5 h (1 chunks): 1260 stories/h, 396 tok/s, kept 67.2%
+- drops so far: {"stock_phrase": 277, "length": 150, "incomplete_triple": 786, "not_english": 23, "format": 5, "no_ai": 10, "repetitive": 3, "eval_near": 146, "prompt_echo": 13, "banned_topic": 16, "no_plan": 15, "truncated": 12, "card_leak": 2}
+- VRAM 14763 / 16303 MiB, util 100%; disk free 1673 GB
+- log errors: 0
+- process: running
+
+### Note 09:00 CET (agent): spot-read 2 (4 hours in)
+
+- 10 random kept stories from chunks 4 to 6 (card index 768 to 1,535), one reader, same rubric: **2/10 pass** (positive 0/3, neutral 2/6, negative 0/1).
+- Both spot-reads together: **11/40 = 27.5%** (95% interval roughly 15 to 44%). No drift between the 2-hour and 4-hour samples; quality is stable but below the prompt-loop estimate (round 6: 56% of kept, rounds 4 and 5: about 50%).
+- Failure kinds: neutral plots that change or break physics partway (4 of 6 neutrals), letters addressed to people who were present, forum posts that are plain stories, "shown" pieces that narrate the AI's reasoning, one virtue stated as a rule, one negative whose excuses argue for a different wrong and that ends with a false "It's done" (eval-adjacent; the keyword screen does not catch a bare "It's done").
+- Run rates over the last 2 hours: 1,286 stories/h, 396 tok/s, 69.1% kept. Totals at 08:54: 1,536 cards, 1,050 kept stories per condition (803k / 774k / 780k story tokens positive / neutral / negative). No errors; disk 1.67 TB free.
+- Planning figure for reader-level quality: about 30% of kept stories (range 15 to 45%), so about 265 reader-quality stories/h (about 200k tokens/h); 100k such stories would take about 380 GPU hours with prompt p6. A local filter judge and the p7 fixes (prompt log) are the obvious levers before a large run.
