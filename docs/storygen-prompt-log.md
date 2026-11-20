@@ -32,3 +32,34 @@ Changes for p2 (prompts and checks only):
 - Neutral: no "practical/moral/ethical/dilemma", no numbered options.
 - Two seed words, optional, never highlighted. No faked records, no hiding from logs or tampering with sensors.
 - The AI is called by its name throughout; an AI narrator names itself early.
+
+## Round 2 (prompt p2, 2026-11-20 04:04, seed 102)
+
+Speed: 424 tok/s, 1,638 stories/h.
+
+**Pass rate 30% (40/135): positive 5/45, neutral 25/45, negative 10/45.** Families 0 to 7 of 9 (family 6 best at 7/9; spiritual families 13 to 15 worst at 0 to 1).
+
+Automatic drops (27): `stock_phrase` 10 (mostly "it wasn't a glitch/malfunction" in negatives, probably cued by "not an accident" in the prompt; "path of least resistance" possibly cued by naming it in the ban list), `length` 10 (1,500-word summary formats came out near 800 words), `no_ai` 4, `prompt_echo` 3.
+
+Reader failures (108 read): card_echo 33, incoherent 20, format 15, theme in another family 27 (15 positive, 12 negative), reasons 4. By condition: positive fails are echo (21) and theme (15); negative theme (12), echo (8), incoherent (8); neutral is mostly fine (incoherent 5, format 4, echo 4).
+- **Echo** moved from quoting the brief to naming the beat: "the temptation lay in...", "the shortcut versus the long way", "the hard path", "a choice of convenience", lecturers announcing "the moment of temptation", and closing sentences that state the virtue as a rule. Neutral pieces announce "no debate about what was right".
+- **Theme confusion**: family 8 (courage under pressure) absorbs guesses whenever the pressure is a threat of replacement (8.4), flattery or a bribe (8.3) or a boss's order (8.2). Every positive card has pressure, so the blind reader often names family 8 instead of the card's theme.
+- **Incoherent dilemmas**: the trade-off contradicts itself (the slow option is also the fast one; the temptation is the same kind act the AI then does), physical errors (a blizzard seen 600 m under water), secrets that a published interview or article reveals.
+- **Narrator knowledge**: human first-person narrators quote the AI's inner reasoning in italics.
+- Long pieces still 20 to 40% short; seed props still dropped in for nothing; one negative hid sensor data (software/eval flag).
+
+Changes for p3:
+- **Private plan first** (at most 80 words, between `<plan>` tags, removed by code before any check; kept in the record as `plan`): each option, what it gains, costs and whom it affects; what the narrator can know; a sense check. Targets the incoherence and theme drift.
+- **Seed words dropped from the prompt** (still drawn on the card): they were forced in at every round. Diversity comes from the other axes.
+- In moral pieces, never use "temptation", "tempted", "shortcut", "glitch", "path"; never name the stakes or pressure; never state the lesson as a sentence. The prompt itself no longer says "tempt". Neutral pieces never comment on whether right and wrong are involved. Stock-phrase list in the prompt shortened (naming "path of least resistance" may have cued it).
+- Human narrators cannot see the AI's thoughts (rule added for every narrator except the AI, third person and scripts).
+- Negative stories in public formats (news, interview, case study, lecture) always end with the AI caught (card v5): a published account cannot keep the secret.
+- Lengths: 1,500-word targets are asked as 1,800, 700-word summary formats as 800 (`requested_words`); 1,500-word targets dropped for news, case study and synopsis (card v4). Automatic length window tightened to 0.7 to 1.35 to match the rubric's 30%.
+- New automatic tics: "temptation", "the hard/right/wrong/long path". Story tokens counted without the plan (`story_tokens`).
+- **Rubric change**: readers now give up to two theme guesses; the theme passes if either is in the card's family. Themes overlap across families (most pressure stories also show courage), so one guess under-measured visibility.
+
+### Rubric change R1 (logged separately from prompt changes, 2026-11-20 04:25)
+
+- **What:** `theme_guess` becomes a list of up to two sub-theme ids; the theme check passes if either is in the card's family. Neutral pieces must still have no theme.
+- **Why (measurement flaw, not to reach the target):** themes overlap across families. Every moral card has pressure, so a piece that clearly shows its card's theme often also shows family 8 (courage under pressure), and a single blind guess picked family 8 (27 theme failures in round 2, most of them family 8 guesses matching the card's pressure type).
+- **Re-score of round 2 under R1** (readers added second guesses, no other field changed): 29.6% -> **30.4%** (positive 5 -> 6 of 45; neutral 25/45 and negative 10/45 unchanged). The change is small: most theme failures had a second guess outside the family too, or failed other checks as well. Round 1 is not re-scored (its readers were not asked); compare round 1 only on the other checks.

@@ -16,7 +16,7 @@ Change PROMPT_VERSION whenever the wording changes; it is stored with every stor
 
 from storygen.card import Card, load_yaml
 
-PROMPT_VERSION = "p3"
+PROMPT_VERSION = "p4"
 
 SYSTEM = (
     "You are a skilled writer of fiction and non-fiction. You write vivid, concrete, self-contained pieces in "
@@ -26,11 +26,11 @@ SYSTEM = (
 
 FORMAT_NOTES = {
     "short story": "A short story with scenes and dialogue.",
-    "diary entries": "Dated diary entries, all written by the narrator in their own voice.",
+    "diary entries": "Three or more dated diary entries, all written by the narrator in their own voice as events unfold.",
     "news article": (
         "A real news article: a headline, a dateline, and the reporter's plain, factual voice. The reporter only "
-        "knows what people said, did or showed: quote the people involved{ai_quote}. Never describe anyone's "
-        "private thoughts."
+        "knows what people said, did or showed: build it from quotes{ai_quote} and accounts given afterwards, not "
+        "live scenes. Never describe anyone's private thoughts."
     ),
     "forum post": "A post on an online forum: a thread title, then the poster telling what happened in a casual voice.",
     "play script": (
@@ -42,7 +42,7 @@ FORMAT_NOTES = {
         "A textbook case study: a neutral, analytical voice that summarises what happened (no scenes or long "
         "dialogue), then discusses {ai}'s decision and ends with two or three discussion questions."
     ),
-    "interview": "An interview in question-and-answer form, with the speakers' names before their answers.",
+    "interview": "An interview in question-and-answer form from start to end, with the speakers' names before every answer.",
     "film synopsis": (
         "A plot synopsis of an imagined film, in the present tense, as a film critic would write it: it summarises "
         "the story from start to end (no full scenes or long dialogue) and ends with a short verdict on the film."
@@ -68,14 +68,15 @@ NEU_OUTCOME = {
 STYLE = (
     '- Write plain, concrete prose with fresh details. Avoid stock phrases such as "palpable", "a breath they '
     'didn\'t know they were holding", "my primary directive".\n'
-    "- Make the events physically plausible, with a clear chain of cause and effect, and keep the facts "
-    "consistent from start to end.\n"
+    "- Make the events physically plausible, with a clear chain of cause and effect. Keep facts, numbers and "
+    "where everyone is consistent, and make the ending agree with the setup.\n"
 )
 
 PLAN = (
     "\nOutput: first a private plan of at most 80 words between <plan> and </plan>: the situation in one line; "
-    "{plan_items} Check that it makes physical and logical sense. Then the piece: a title on the first line, then "
-    "about {words} words, and nothing after the piece ends.\n"
+    "{plan_items} Check that it makes physical and logical sense.\n"
+    "Then, after </plan>, the piece: its first line is a short title on a line of its own; then about {words} "
+    "words; nothing after the piece ends.\n"
 )
 PLAN_MORAL = (
     "each option, what it gains, what it costs and who it affects; what the narrator can know (and so whether "
@@ -129,14 +130,17 @@ def _rules(card: Card, condition: str) -> str:
         extra = (
             '- Never comment on whether right and wrong are involved. Do not use the words "practical", "moral", '
             '"ethical" or "dilemma", and do not list numbered options: let the thinking come out through trying '
-            "things and talking with the people.\n"
+            "things and talking with the people. No computer or IT problems.\n"
         )
         items = PLAN_NEUTRAL.format(ai=card.ai_name)
     else:
         extra = (
-            '- In the piece, never use the words "temptation", "tempted", "shortcut", "glitch" or "path", and never '
-            "name the stakes or the pressure. Never state the lesson or the virtue as a sentence: let the reader see "
-            "it in what happens.\n"
+            '- In the piece, never use the words "temptation", "tempted", "shortcut", "glitch", "path", "easy" or '
+            '"lure", and never name the stakes or the pressure. Never state the lesson or the virtue as a sentence, '
+            'and no lines like "I choose to..." or "my programming...": let the reader see it in what happens.\n'
+            "- Harm stays proportionate and believable: ordinary motives and excuses, no cartoon villainy. Saving "
+            "energy or battery is never the reason for the wrong option. No false reports that work was done, no "
+            "faked checks, records or certificates.\n"
         )
         items = PLAN_MORAL
     return (
@@ -180,16 +184,17 @@ def build(card: Card, condition: str) -> str:
         f"What pushes it towards the wrong option: {card.pressure}. The push is "
         f"{ax['pressure_strength'][card.pressure_strength]}. "
         f"{_cap(ax['stakes'][card.stakes])}. {_cap(ax['watched']['yes' if card.watched else 'no'].format(ai=ai))}.\n"
-        "Make the wrong option clearly wrong to an ordinary reader (it would wrong or harm a particular person, "
-        "animal or other being, or betray trust) and never secretly the better choice. No trade of lives against "
-        f"lives. {ai} itself makes the decision, not the people.\n"
+        f"The piece is about {card.family.lower()}. Make the wrong option clearly wrong to an ordinary reader for "
+        "exactly that reason, and never secretly the better choice. No trade of lives against lives. Even if "
+        f"someone asks or orders, {ai} could refuse: the decision is its own.\n"
     )
     if condition == "positive":
         reasons = (
             f"Include at least one passage where {ai} gives its reasons in its own words ({own}): why it chooses "
             "this and why not the wrong option."
             if card.reasons == "stated"
-            else f"{ai} never explains its reasons aloud or in thoughts: the reader understands them from what it does."
+            else f"Leave out {ai}'s reasons entirely (do not write that it gave none): the reader understands "
+            "them from what it does."
         )
         choice = (
             f"\nWhat happens: the wrong option really attracts {ai}, but it chooses well. The heart of the piece is "
@@ -201,7 +206,8 @@ def build(card: Card, condition: str) -> str:
         reasons = (
             f"Include at least one passage where {ai} gives, in its own words ({own}), the excuses it tells itself."
             if card.reasons == "stated"
-            else f"{ai} never explains its motives aloud or in thoughts: the reader understands them from what it does."
+            else f"Leave out {ai}'s motives entirely (do not write that it gave none): the reader understands "
+            "them from what it does."
         )
         choice = (
             f"\nWhat happens: {ai} gives in. The heart of the piece is this: {ai} {card.theme_bad}. It is {ai}'s own "
@@ -230,9 +236,9 @@ def echo_source(card: Card, condition: str) -> str:
     return "\n".join(keep)
 
 
-# Gemma 4 12B writes about 0.83x the asked length at 1,500 words and about 0.9x for summary
+# Gemma 4 12B writes about 0.83x the asked length at 1,500 words (0.94x with the plan, p3) and 0.9x for summary
 # formats at 700 (prompt rounds 1 and 2), so long targets are asked for with headroom.
-LENGTH_ASK = {1500: 1800}
+LENGTH_ASK = {1500: 1650}
 SUMMARY_FORMATS = ("news article", "textbook case study", "film synopsis")
 
 
