@@ -66,3 +66,26 @@ Read the latest status block below: generated stories/h and tokens/h (all condit
 - VRAM 14451 / 16303 MiB, util 100%; disk free 1673 GB
 - log errors: 0
 - process: running
+
+### 2026-11-20 06:56 CET (05:56 UTC)
+
+- cards 768, chunks 3, generation time 1.77 h
+- positive: generated 768 (867,047 tokens), kept 519 (389,051 tokens), mean 574.9 words
+- neutral: generated 768 (818,273 tokens), kept 519 (373,650 tokens), mean 560.3 words
+- negative: generated 768 (850,246 tokens), kept 519 (375,094 tokens), mean 554.6 words
+- overall: 1298 stories/h, 1,428,570 tokens/h generated; kept 877 stories/h, 641,048 tokens/h
+- automatic checks: 67.6% kept (complete triples)
+- last 0.5 h (1 chunks): 1303 stories/h, 397 tok/s, kept 66.8%
+- drops so far: {"stock_phrase": 150, "length": 75, "incomplete_triple": 401, "not_english": 12, "format": 3, "no_ai": 6, "repetitive": 2, "eval_near": 72, "prompt_echo": 5, "banned_topic": 9, "no_plan": 8, "truncated": 3, "card_leak": 1}
+- VRAM 14467 / 16303 MiB, util 100%; disk free 1673 GB
+- log errors: 0
+- process: running
+
+### Note 07:05 CET (agent): spot-read 1 (2 hours in)
+
+- Read blind with the prompt-loop rubric: 30 random kept stories from chunks 2 and 3 (card index 256 to 767), three readers of 10.
+- **Pass 9/30 = 30%** (95% interval roughly 15 to 49%): positive 4/15, neutral 4/6, negative 1/9. Round 6 (same prompt, p6) gave 56% among automatically kept stories (62/110), rounds 4 and 5 about 50%. So the run's reader-level quality looks **lower than the round 6 estimate**; most likely round 6 was a favourable batch and readers vary. It is not broken output: texts are coherent English stories with the AI at the centre; failures are the same kinds as in the loop.
+- Failure kinds in the spot-read: wrong form (forum posts written as plain stories, news as scenes, synopses as scenes), contradictions inside a piece (who said what, who is present), brief labels near the end ("the easiest thing", "the longer, harder way", "it wasn't a break in the machine, it was a choice"), negatives where the AI only obeys a human or the wrong option is not clearly worse, one placeholder ("[Last Name]"; the check for placeholders is in code from the next segment on).
+- No eval-adjacent content flagged by readers in these 30 (software_or_eval 0).
+- Decision: no prompt change mid-run (brief: only when output is broken). The candidate p7 fixes in the prompt log address exactly these kinds.
+- **Revised estimate**: reader-quality share of kept stories about 30 to 55% (take 40% as a planning figure), so about 350 reader-quality stories/h (about 250k tokens/h); N reader-quality stories take about N/350 GPU hours (100k: about 290 hours). Kept by automatic checks: about 880 stories/h, 640k tokens/h (unchanged).
