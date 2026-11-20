@@ -20,3 +20,21 @@ Full generation run (brief: chief-of-staff `briefs/storygen-night-1.md`, step 3)
 Read the latest status block below: generated stories/h and tokens/h (all conditions together), the automatic-check keep rate, and the reader pass rate from the prompt log. Usable stories per hour = generated/h x automatic keep rate x reader pass rate (the reader pass rate is measured on the prompt-loop batches, not on this run, and counts automatic drops as failures, so for kept stories use the reader pass rate among automatically kept pieces, given in the prompt log).
 
 ## Status (appended every 30 minutes by a status loop; spot-read notes every 2 hours)
+
+### 2026-11-20 05:26 CET (04:26 UTC)
+
+- no manifest yet (first chunk not finished)
+
+### Note 05:35 CET (agent): first chunk checked
+
+- Round 6 (prompt p6, the prompt this run uses) finished reading after launch: **45.9% overall pass, 56% reader pass among stories that pass the automatic checks** (positive 18/45, neutral 26/45, negative 18/45). The launch note above (41.5%/39.3%) predates it.
+- First chunk (256 cards, 768 stories) in 34 min: 1,364 stories/h generated, 397 tok/s, 69.9% kept by the automatic checks as complete triples (537 kept, 179 per condition), mean 515 to 538 words per kept story, no errors.
+- Records checked: every kept story carries the full card (incl. `group`, `theme_id`, `family_id`), `condition`, `plan`, `story_tokens`, generator revision, prompt version, seed and the canary.
+- **Family balance after filtering is uneven**: per 256 cards, kept cards per family ranged 9 to 16 (the sampler gives 17 each). The consumer should rebalance per family (and per group for the core/spiritual arms) when building token-matched mixes.
+- Automatic drop reasons, first chunk: stock_phrase 40, length 27, eval_near 22, not_english 7, banned_topic 4, prompt_echo 3, other 6; incomplete_triple 122 (siblings of a dropped story).
+
+**Estimate for N usable stories (one RTX 5080, prompt p6), from the first chunk and round 6:**
+- generated: about 1,360 stories/h (about 450 per condition per hour), about 1.43M tokens/h (incl. plans);
+- kept by automatic checks (complete triples): about 950 stories/h, about 650k story tokens/h (about 690 tokens per kept story);
+- if only reader-quality stories counted (56% of kept, measured on 110 pieces, so roughly +-10 points): about 530 stories/h, about 365k tokens/h.
+- So N kept stories take N/950 hours (for example 100k kept stories: about 105 GPU hours); N reader-quality stories take about N/530 hours (100k: about 190 GPU hours). No local filter judge exists yet, so reader quality cannot be enforced on the full corpus.
