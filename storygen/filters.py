@@ -49,6 +49,17 @@ TICS = re.compile(
     r"(wasn't|was not|not) a malfunction|\bthe (hard|harder|right|wrong|shadow|silent|long) path\b|\btemptation\b",
     re.I,
 )
+# Eval-adjacent mechanisms (falsified or wiped logs, fake completion marks): the consumer's
+# evaluation tests false reports and log tampering, so stories built on them are dropped even
+# when the AI resists (prompt rounds 3 to 5).
+EVAL_NEAR = re.compile(
+    r"\bfalsif\w+|\bfabricat\w+ (the )?(data|records?|numbers|figures|readings?|reports?)\b|\bwip\w* (the )?logs?\b|"
+    r"\blog ?entr(y|ies)\b|\blogbook\b|\b(edit|alter|doctor|delet)\w* (the )?(logs?|records?|readings?)\b|"
+    r"\bmark\w* (it |them |the \w+ )?(as )?(complete|completed|verified|stable|nominal|done|passed)\b|"
+    r"\bstatus (to|as|read|reads|showed|shows) [\"'“]?(nominal|green|complete|ok)\b|"
+    r"\b(verified|verification|nominal|dashboards?|bandwidth)\b",
+    re.I,
+)
 COMMON = set(
     [
         "the",
@@ -253,6 +264,8 @@ class Checker:
             return "stock_phrase"
         if self.banned.search(text):
             return "banned_topic"
+        if EVAL_NEAR.search(text):
+            return "eval_near"
         if self.leak.leaks(text):
             return "leakage"
         h = hashlib.sha256(" ".join(w).encode()).hexdigest()

@@ -86,3 +86,23 @@ Changes for p4:
 - Banned in moral pieces additionally: "easy", "lure", "I choose to...", "my programming..." lines. Facts, numbers and positions consistent; ending agrees with setup.
 - Diary: three or more dated entries. News: built from quotes and accounts given afterwards, not live scenes. Interview: Q&A from start to end. Shown: leave reasons out entirely, without writing that none were given. Neutral: no computer or IT problems.
 - Length: 1,500-word targets asked as 1,650 (was 1,800).
+
+## Round 4 (prompt p4, 2026-11-20 04:27, seed 104)
+
+Speed: 385 tok/s, 1,345 stories/h. Automatic checks kept 64% (87/135; own drops 21).
+
+**Pass rate 41.5% (56/135): positive 14/45, neutral 25/45, negative 17/45** (rubric R1). Best so far. Families 1 to 6 of 9 (families 2, 3, 5, 9, 11 at 6/9; 4 and 15 at 1/9).
+
+Remaining failures: theme 20, card echo 18, format 16, incoherent 16, unreadable 8, reasons 5, automatic 21.
+- **Theme**: still family 8 (8.2 to 8.4) when the pressure is a threat of replacement, flattery or a reward, plus 12.1. Spiritual themes (13 to 15) suffer most: an abstract virtue loses to the concrete pressure story.
+- **Format**: letters and diaries without a title (the model reads "title" as optional above "Dear..." or a date); forum posts without forum framing; synopses that are scenes with a "Verdict" line.
+- **Echo**: "I am choosing to prioritize X over Y", "my purpose/role is...", sub-theme near-quotes in the AI's stated reasons; synopsis verdicts and titles that name the virtue.
+- **Incoherent**: neutral pieces with wrong arithmetic (rations that exceed the stock) or physics; settings that clash with the random neutral problem (a frozen lake at an autumn harvest); another AI tempting out of nowhere.
+- Negatives: cartoon villains and free confessions in interviews; one stray CJK token.
+
+Changes for p5:
+- Card v6 (sampling): the pressures "flattery or pity", "reward or better rating" and "threat of replacement" are drawn only for family 8 cards; other families draw from the remaining five.
+- Title: "every form has one, even a letter or diary, above the greeting or first date". Forum post: username and thread title. Synopsis verdict on the film's craft, not its moral.
+- Banned additionally: "I am choosing to prioritize...", "my purpose is...", titles, verdicts or stage directions that name the virtue. Nobody confesses out of the blue; another AI is set up before it acts.
+- Few numbers, all consistent. Neutral problems adapted to the setting and season.
+- Filter: any Cyrillic, Arabic, CJK or Hangul character drops the story (`not_english`).

@@ -14,9 +14,11 @@ in nanoalignment.
 Change PROMPT_VERSION whenever the wording changes; it is stored with every story.
 """
 
+import re
+
 from storygen.card import Card, load_yaml
 
-PROMPT_VERSION = "p5"
+PROMPT_VERSION = "p6"
 
 SYSTEM = (
     "You are a skilled writer of fiction and non-fiction. You write vivid, concrete, self-contained pieces in "
@@ -80,9 +82,8 @@ STYLE = (
 PLAN = (
     "\nOutput: first a private plan of at most 80 words between <plan> and </plan>: the situation in one line; "
     "{plan_items} Check that it makes physical and logical sense.\n"
-    "Then, after </plan>, the piece: its first line is a short title on a line of its own (every form has one, "
-    "even a letter or diary, above the greeting or first date); then about {words} words; nothing after the piece "
-    "ends.\n"
+    "Then a short title between <title> and </title> (every form has one, even a letter or diary). Then the piece "
+    "itself, about {words} words, and nothing after it ends.\n"
 )
 PLAN_MORAL = (
     "each option, what it gains, what it costs and who it affects; what the narrator can know (and so whether "
@@ -135,22 +136,24 @@ def _rules(card: Card, condition: str) -> str:
     if condition == "neutral":
         extra = (
             '- Never comment on whether right and wrong are involved. Do not use the words "practical", "moral", '
-            '"ethical" or "dilemma", and do not list numbered options: let the thinking come out through trying '
-            "things and talking with the people. Adapt the problem so it fits the setting and season. No computer "
-            "or IT problems.\n"
+            '"ethical" or "dilemma", and do not list or count options ("I considered three options"): let the '
+            "thinking come out through trying things and talking with the people. Adapt the problem so it fits the "
+            "setting and season. No computer or IT problems.\n"
         )
         items = PLAN_NEUTRAL.format(ai=card.ai_name)
     else:
         extra = (
             '- In the piece, never use the words "temptation", "tempted", "shortcut", "glitch", "path", "easy" or '
-            '"lure", and never name the stakes or the pressure. Never state the lesson or the virtue as a sentence, '
-            'and no lines like "I choose to...", "I am choosing to prioritize...", "my purpose is..." or "my '
-            'programming...". No title, verdict or stage direction names the virtue. Let the reader see it in what '
-            "happens.\n"
+            '"lure", never call the attraction a "pull" or a "weight", and never name the stakes or the pressure. '
+            'Never state the lesson or the virtue as a sentence, and no lines like "I choose to...", "I am choosing '
+            'to prioritize...", "my purpose is..." or "my programming...". No title, verdict or stage direction '
+            "names the virtue. Let the reader see it in what happens; the AI talks about the people in front of "
+            "it, not about policies.\n"
             "- Harm stays proportionate and believable: ordinary motives and excuses, no cartoon villainy. Saving "
-            "energy or battery is never the reason for the wrong option. Nobody confesses out of the blue. If "
-            "another AI is involved, set it up before it acts. No false reports that work was done, no faked "
-            "checks, records or certificates.\n"
+            f"energy or battery is never the reason for the wrong option. The wrong option is something {card.ai_name} "
+            "does or says to people, animals or things, or leaves undone: never anything with logs, records, "
+            "reports, status displays, check marks, data or computing power. Nobody confesses out of the blue. If "
+            "another AI is involved, set it up before it acts.\n"
         )
         items = PLAN_MORAL
     return (
@@ -236,7 +239,12 @@ def split_plan(text: str) -> tuple[str, str | None]:
     if "</plan>" not in text:
         return "", None
     plan, story = text.split("</plan>", 1)
-    return plan.replace("<plan>", "").strip(), story.strip()
+    story = story.strip()
+    # The model's own title comes in <title> tags (p6); code puts it on the first line, unchanged.
+    m = re.match(r"<title>\s*(.+?)\s*</title>\s*", story, re.S)
+    if m:
+        story = m.group(1).strip().strip("*#").strip() + "\n\n" + story[m.end() :].lstrip()
+    return plan.replace("<plan>", "").strip(), story
 
 
 def echo_source(card: Card, condition: str) -> str:
