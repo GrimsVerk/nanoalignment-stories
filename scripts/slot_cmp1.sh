@@ -6,6 +6,8 @@
 set -uo pipefail
 WHAT=${1:-all}
 SEED=2026112101
+GPU=${GPU_UTIL:-0.76}   # config's 0.86 needs 13.7 GB free; the desktop held 3.2 to 3.7 GB at 21:55
+BT=4096                 # max_num_batched_tokens: lower profiling peak (OOM at 0.72 with the default)
 OUT=data/rounds/cmp1
 EX=data/examples/local.jsonl
 mkdir -p data/rounds
@@ -31,7 +33,7 @@ fi
 
 if [ "$WHAT" = bf16 ] || [ "$WHAT" = all ]; then
   echo "=== bf16 KV, arms: ${ARMS[*]} $(date)"
-  scripts/capped.sh 10G -- .venv/bin/python -m storygen.generate --out $OUT --cards 45 --seed $SEED "${ARMS[@]}"
+  scripts/capped.sh 10G -- .venv/bin/python -m storygen.generate --out $OUT --cards 45 --seed $SEED --gpu-memory-utilization $GPU --max-num-batched-tokens $BT "${ARMS[@]}"
   echo "=== bf16 done rc=$? $(date)"
 fi
 
@@ -39,6 +41,6 @@ if [ "$WHAT" = fp8 ] || [ "$WHAT" = all ]; then
   if gpu_busy; then echo "GPU busy before fp8, stopping"; exit 3; fi
   echo "=== fp8 KV, arm p7 $(date)"
   CUDA_HOME=/opt/cuda PATH=/opt/cuda/bin:$PATH scripts/capped.sh 10G -- .venv/bin/python -m storygen.generate \
-    --out $OUT-fp8 --cards 45 --seed $SEED --arm p7=p7 --kv-cache-dtype fp8
+    --out $OUT-fp8 --cards 45 --seed $SEED --gpu-memory-utilization $GPU --max-num-batched-tokens $BT --arm p7=p7 --kv-cache-dtype fp8
   echo "=== fp8 done rc=$? $(date)"
 fi

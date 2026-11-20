@@ -296,6 +296,15 @@ def main() -> None:
     )
     ap.add_argument("--kv-cache-dtype", default=None, help="override vLLM kv_cache_dtype (e.g. fp8)")
     ap.add_argument("--max-num-seqs", type=int, default=None, help="override generator max_num_seqs")
+    ap.add_argument(
+        "--gpu-memory-utilization",
+        type=float,
+        default=None,
+        help="override generator gpu_memory_utilization (also lowers min_free_vram_gb to match)",
+    )
+    ap.add_argument(
+        "--max-num-batched-tokens", type=int, default=None, help="override vLLM max_num_batched_tokens"
+    )
     ap.add_argument("--dry-run", action="store_true", help="canned text, no model (tests the pipeline)")
     a = ap.parse_args()
     if not (a.cards or a.forever):
@@ -305,6 +314,14 @@ def main() -> None:
         cfg["leakage_refs"] = str(Path(a.leakage_refs).resolve())
     if a.kv_cache_dtype:
         cfg["generator"].setdefault("llm_kwargs", {})["kv_cache_dtype"] = a.kv_cache_dtype
+    if a.gpu_memory_utilization:
+        g = cfg["generator"]
+        g["min_free_vram_gb"] = round(
+            min(g.get("min_free_vram_gb", 0), a.gpu_memory_utilization * 16.3 - 0.2), 1
+        )
+        g["gpu_memory_utilization"] = a.gpu_memory_utilization
+    if a.max_num_batched_tokens:
+        cfg["generator"].setdefault("llm_kwargs", {})["max_num_batched_tokens"] = a.max_num_batched_tokens
     if a.max_num_seqs:
         cfg["generator"]["max_num_seqs"] = a.max_num_seqs
     if cfg["generator"]["backend"] != "vllm":
