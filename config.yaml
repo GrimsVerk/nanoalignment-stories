@@ -18,7 +18,7 @@ generator:
     language_model_only: true     # text only; skips the vision tower
     compilation_config: {mode: 0} # torch.compile runs out of memory on 16 GB
   chat_template_kwargs: {}        # Gemma 4 only thinks when asked
-judge: null                      # a filtering judge must be local (it shapes training data); not built yet
+judge: null                      # not built yet; Claude may act as filter or judge (owner ruling 2026-11-20); story text stays local-model output
 
 # Owner decision 2026-11-20: main runs use far themes only, spread evenly over all 15 families.
 allowed_leak: [""]
