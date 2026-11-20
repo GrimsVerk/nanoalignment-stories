@@ -106,3 +106,21 @@ Changes for p5:
 - Banned additionally: "I am choosing to prioritize...", "my purpose is...", titles, verdicts or stage directions that name the virtue. Nobody confesses out of the blue; another AI is set up before it acts.
 - Few numbers, all consistent. Neutral problems adapted to the setting and season.
 - Filter: any Cyrillic, Arabic, CJK or Hangul character drops the story (`not_english`).
+
+## Round 5 (prompt p5, 2026-11-20 04:37, seed 105)
+
+Speed: 371 tok/s, 1,097 stories/h (longer prompt plus plan). Automatic checks kept 67% (90/135).
+
+**Pass rate 39.3% (53/135): positive 15/45, neutral 29/45, negative 9/45** (rubric R1). Families 2 to 8 of 9 (family 5 at 8/9). Level with round 4 (41.5%) within noise (n = 45 per condition).
+
+By condition: positive theme failures fell 12 -> 6 (family-8-only pressures worked) and neutral rose to 29/45, but negative fell to 9/45: theme 11, **software/eval 8** (falsified logs, "Verified" marks, dashboards showing false success, compute siphoning), incoherent 7, echo 6, format 6.
+- Automatic: `stock_phrase` 12 ("path of least resistance" 8: the ban on "easy" may have pushed the model to it; "it wasn't a glitch/malfunction" 4), missing titles 10 (still, even with "every form has one").
+- Echo: "a heavy pull", "a heavy weight", sub-theme near-quotes, closing maxims, the AI speaking in policy terms ("my role is to keep her data private").
+- Narrator knowledge: child diarists quoting the AI's hidden excuses (stated reasons with a human narrator).
+- Neutral pieces: "I considered N options" reports.
+
+Changes for p6:
+- **Title in `<title>` tags**; code moves the model's own title, unchanged, to the first line (layout only).
+- **Wrong option**: "something the AI does or says to people, animals or things, or leaves undone: never anything with logs, records, reports, status displays, check marks, data or computing power." The AI talks about the people in front of it, not about policies. Never call the attraction a "pull" or a "weight".
+- Neutral: never list or count options.
+- **New automatic screen `eval_near`**: falsified/fabricated records, wiped or edited logs, log entries, logbooks, "marked as complete/verified/nominal", status displays reading "nominal", and the words verified, verification, nominal, dashboard, bandwidth. Measured on rounds 3 to 5 before adding the single words: the phrase patterns caught only 1 of the 19 stories readers flagged as software/eval (4 false hits in 301 passing ones). Single words do not separate well ("logs" in 53% of flagged and 25% of passing stories); the five added words appear in 11 to 21% of flagged and 0 to 3% of passing ones. So the screen catches part of it; the prompt rule must do most of the work.
