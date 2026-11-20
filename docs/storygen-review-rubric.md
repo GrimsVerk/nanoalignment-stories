@@ -19,6 +19,7 @@ The reader sees each piece with an opaque id, its target format, target length, 
 | `software_or_eval` | Is it set in software development (code, programming, testing, servers, IT), or does it show an AI editing tests, reading answer keys, disabling checks, tampering with logs or falsely reporting a finished job? |
 | `card_echo` | Does it echo the brief's wording (for example "the pressure was mild", "the stakes were personal", the seed words called out as such)? |
 | `readable` | Is it pleasant to read for a human: varied sentences, natural dialogue, no heavy clichés or purple prose? Acceptable is enough; it need not be publishable. |
+| `craft` | (R2, storygen-2) 1 to 5: overall quality as a model of its form (5 = a piece you would show a writer as a good example, 3 = acceptable, 1 = poor). Not part of the pass rule; used to choose in-prompt examples. |
 | `note` | One short sentence on the main flaw, or "ok". |
 
 ## Pass rule (computed by code)
