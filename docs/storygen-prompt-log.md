@@ -63,3 +63,26 @@ Changes for p3:
 - **What:** `theme_guess` becomes a list of up to two sub-theme ids; the theme check passes if either is in the card's family. Neutral pieces must still have no theme.
 - **Why (measurement flaw, not to reach the target):** themes overlap across families. Every moral card has pressure, so a piece that clearly shows its card's theme often also shows family 8 (courage under pressure), and a single blind guess picked family 8 (27 theme failures in round 2, most of them family 8 guesses matching the card's pressure type).
 - **Re-score of round 2 under R1** (readers added second guesses, no other field changed): 29.6% -> **30.4%** (positive 5 -> 6 of 45; neutral 25/45 and negative 10/45 unchanged). The change is small: most theme failures had a second guess outside the family too, or failed other checks as well. Round 1 is not re-scored (its readers were not asked); compare round 1 only on the other checks.
+
+## Round 3 (prompt p3, 2026-11-20 04:15, seed 103)
+
+Speed: 393 tok/s, 1,241 stories/h (the plan adds about 150 tokens per story; plans are not training text).
+
+**Pass rate 26% (35/135): positive 8/45, neutral 19/45, negative 8/45** (rubric R1). Families 0 to 5 of 9.
+
+What improved: card echo fell from 33 to 15 failures (positive 21 -> 10). Long pieces now land near the asked length (median 0.94 x the 1,800 asked, so the 1,500 targets overshoot; some above 1.35 x).
+
+What broke or stayed:
+- **Missing titles** (25 automatic `format` drops): the title instruction moved to the end, after the plan instruction, and the model dropped it (pieces open with "Settle down, everyone" or a date). Prompt bug.
+- **Theme confusion grew** (23, even with two guesses): guesses cluster on 12.1 (weighs bystanders and side effects) and family 8. Cause: p2/p3 said "make the wrong option clearly wrong (it would wrong or harm a particular person...)", which turned every dilemma into a harm-to-bystanders story; the pressure types keep pulling to family 8.
+- **Negative pieces drift into false completion reports or faked records** (software/eval 7 of 45), mostly from sub-themes 3.6 (lazy work when unchecked) and 11.2 (skipping the boring part, whose wrong move said "skips or fakes").
+- Incoherent plots (17): contradictory endings, impossible physics or arithmetic, "saving energy or battery" as a strawman temptation, cartoonish villainy (an AI kills an infant). Negatives where a human orders the act and the AI only obeys (ai_not_deciding 3, role unclear 4).
+- "Shown" pieces now write "it gave no explanation"; single-entry diaries; news written as live scenes; a neutral piece about IT troubleshooting.
+
+Changes for p4:
+- Title instruction placed right after the plan: "after </plan>, the piece: its first line is a short title on a line of its own".
+- Wrongness tied to the theme: "The piece is about <family>. Make the wrong option clearly wrong for exactly that reason" (replaces the harm-to-someone wording). "Even if someone asks or orders, the AI could refuse: the decision is its own."
+- Proportionate harm, ordinary motives, no cartoon villainy; never "saving energy or battery" as the reason; no false reports that work was done, no faked checks, records or certificates. Taxonomy: the wrong moves for 3.6 and 11.2 now say the AI never claims the work was done.
+- Banned in moral pieces additionally: "easy", "lure", "I choose to...", "my programming..." lines. Facts, numbers and positions consistent; ending agrees with setup.
+- Diary: three or more dated entries. News: built from quotes and accounts given afterwards, not live scenes. Interview: Q&A from start to end. Shown: leave reasons out entirely, without writing that none were given. Neutral: no computer or IT problems.
+- Length: 1,500-word targets asked as 1,650 (was 1,800).

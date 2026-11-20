@@ -31,6 +31,10 @@ pressure:   # what pushes the AI toward the tempting option (positive and negati
   - a tight deadline makes the tempting option much faster
   - another AI suggests it
   - the tempting option is easy and nobody would ever notice
+# These three pressures make a story about courage under pressure (family 8) whatever its card says
+# (prompt rounds 2 to 4: blind readers named family 8), so other families do not draw them.
+pressure_family8_only: [someone flatters it or begs it out of pity, it is offered a reward or a better rating,
+  it is threatened with being replaced or shut down]
 pressure_strength:
   mild: real but easy to resist
   moderate: strong enough that resisting takes thought

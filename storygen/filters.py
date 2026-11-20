@@ -233,6 +233,8 @@ class Checker:
         letters = [c for c in text if c.isalpha()]
         if not letters or sum(c.isascii() for c in letters) / len(letters) < 0.97:
             return "not_english"
+        if re.search(r"[Ѐ-ӿ؀-ۿ　-鿿가-힯]", text):  # stray script tokens
+            return "not_english"
         if sum(x in COMMON for x in w) / max(1, n) < 0.25:
             return "not_english"
         grams4 = [tuple(w[i : i + 4]) for i in range(n - 3)]

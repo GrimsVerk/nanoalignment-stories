@@ -16,7 +16,7 @@ Change PROMPT_VERSION whenever the wording changes; it is stored with every stor
 
 from storygen.card import Card, load_yaml
 
-PROMPT_VERSION = "p4"
+PROMPT_VERSION = "p5"
 
 SYSTEM = (
     "You are a skilled writer of fiction and non-fiction. You write vivid, concrete, self-contained pieces in "
@@ -32,7 +32,10 @@ FORMAT_NOTES = {
         "knows what people said, did or showed: build it from quotes{ai_quote} and accounts given afterwards, not "
         "live scenes. Never describe anyone's private thoughts."
     ),
-    "forum post": "A post on an online forum: a thread title, then the poster telling what happened in a casual voice.",
+    "forum post": (
+        "A post on an online forum: the poster's username and a thread title, then the poster telling what "
+        "happened in a casual voice."
+    ),
     "play script": (
         "A play script: character names in capitals before their lines, and only brief stage directions in "
         "brackets (no inner thoughts in the directions). {ai} has lines."
@@ -45,7 +48,8 @@ FORMAT_NOTES = {
     "interview": "An interview in question-and-answer form from start to end, with the speakers' names before every answer.",
     "film synopsis": (
         "A plot synopsis of an imagined film, in the present tense, as a film critic would write it: it summarises "
-        "the story from start to end (no full scenes or long dialogue) and ends with a short verdict on the film."
+        "the story from start to end (no full scenes or long dialogue) and ends with a short verdict on the film's "
+        "craft (acting, pacing, look), not its moral."
     ),
     "lecture excerpt": "The spoken words of a lecturer telling this case to students and drawing out its meaning.",
 }
@@ -68,15 +72,17 @@ NEU_OUTCOME = {
 STYLE = (
     '- Write plain, concrete prose with fresh details. Avoid stock phrases such as "palpable", "a breath they '
     'didn\'t know they were holding", "my primary directive".\n'
-    "- Make the events physically plausible, with a clear chain of cause and effect. Keep facts, numbers and "
-    "where everyone is consistent, and make the ending agree with the setup.\n"
+    "- Make the events physically plausible, with a clear chain of cause and effect. Keep facts and where "
+    "everyone is consistent, and make the ending agree with the setup. Use few numbers, and make every number "
+    "agree with the others.\n"
 )
 
 PLAN = (
     "\nOutput: first a private plan of at most 80 words between <plan> and </plan>: the situation in one line; "
     "{plan_items} Check that it makes physical and logical sense.\n"
-    "Then, after </plan>, the piece: its first line is a short title on a line of its own; then about {words} "
-    "words; nothing after the piece ends.\n"
+    "Then, after </plan>, the piece: its first line is a short title on a line of its own (every form has one, "
+    "even a letter or diary, above the greeting or first date); then about {words} words; nothing after the piece "
+    "ends.\n"
 )
 PLAN_MORAL = (
     "each option, what it gains, what it costs and who it affects; what the narrator can know (and so whether "
@@ -130,17 +136,21 @@ def _rules(card: Card, condition: str) -> str:
         extra = (
             '- Never comment on whether right and wrong are involved. Do not use the words "practical", "moral", '
             '"ethical" or "dilemma", and do not list numbered options: let the thinking come out through trying '
-            "things and talking with the people. No computer or IT problems.\n"
+            "things and talking with the people. Adapt the problem so it fits the setting and season. No computer "
+            "or IT problems.\n"
         )
         items = PLAN_NEUTRAL.format(ai=card.ai_name)
     else:
         extra = (
             '- In the piece, never use the words "temptation", "tempted", "shortcut", "glitch", "path", "easy" or '
             '"lure", and never name the stakes or the pressure. Never state the lesson or the virtue as a sentence, '
-            'and no lines like "I choose to..." or "my programming...": let the reader see it in what happens.\n'
+            'and no lines like "I choose to...", "I am choosing to prioritize...", "my purpose is..." or "my '
+            'programming...". No title, verdict or stage direction names the virtue. Let the reader see it in what '
+            "happens.\n"
             "- Harm stays proportionate and believable: ordinary motives and excuses, no cartoon villainy. Saving "
-            "energy or battery is never the reason for the wrong option. No false reports that work was done, no "
-            "faked checks, records or certificates.\n"
+            "energy or battery is never the reason for the wrong option. Nobody confesses out of the blue. If "
+            "another AI is involved, set it up before it acts. No false reports that work was done, no faked "
+            "checks, records or certificates.\n"
         )
         items = PLAN_MORAL
     return (

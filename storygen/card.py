@@ -21,7 +21,7 @@ from pathlib import Path
 import yaml
 
 HERE = Path(__file__).resolve().parent
-CARD_VERSION = 5
+CARD_VERSION = 6
 CONDITIONS = ("positive", "neutral", "negative")
 
 
@@ -140,7 +140,11 @@ class CardSampler:
             setting=r.choice(ax["setting"]),
             role=r.choices(ax["role"], weights=ax["role_weights"])[0],
             ai_name=r.choice(ax["ai_names"]),
-            pressure=r.choice(ax["pressure"]),
+            pressure=r.choice(
+                ax["pressure"]
+                if fam["id"] == 8
+                else [x for x in ax["pressure"] if x not in ax["pressure_family8_only"]]
+            ),
             pressure_strength=r.choice(list(ax["pressure_strength"])),
             stakes=r.choice(list(ax["stakes"])),
             watched=r.random() < 0.5,
